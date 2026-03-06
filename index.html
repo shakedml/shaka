@@ -1771,7 +1771,7 @@ function taskCardHtml(t, isDone) {
       <div style="width:14px"></div>
       <button class="check-btn" onclick="uncompleteTask('${t.id}')" aria-label="Undo" title="Mark undone">↩</button>
       <div class="task-body"><div class="task-text">${esc(t.text)}</div>${chips?`<div class="task-chips">${chips}</div>`:''}</div>
-      <button class="del-btn" onclick="archiveDoneTask('${t.id}')" aria-label="Archive" title="Archive">📦</button>
+      <button class="del-btn" onclick="archiveDoneTask('${t.id}')" aria-label="Archive" title="Archive">📥</button>
       <button class="del-btn" onclick="deleteTask('${t.id}')" aria-label="Delete">✕</button>
     </div>`;
   }
@@ -2376,7 +2376,7 @@ function showSheet(title,body,onConfirm){
   document.getElementById('sheetBody').textContent=body;
   document.getElementById('sheetOverlay').classList.add('open');
   sheetCb=onConfirm;
-  document.getElementById('sheetConfirm').onclick=()=>{closeSheet();sheetCb?.();};
+  document.getElementById('sheetConfirm').onclick=()=>{const cb=sheetCb;closeSheet();cb?.();};
 }
 function closeSheet(){document.getElementById('sheetOverlay').classList.remove('open');sheetCb=null;}
 
