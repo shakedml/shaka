@@ -1238,8 +1238,10 @@ function initFirebase() {
   firebase.initializeApp(FIREBASE_CONFIG);
   fbAuth = firebase.auth();
   fbDb   = firebase.firestore();
-  // Enable offline persistence — data is cached locally and syncs when back online
   fbDb.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+
+  // Safari/iOS requires getRedirectResult() to be called explicitly after redirect
+  fbAuth.getRedirectResult().catch(console.error);
 
   fbAuth.onAuthStateChanged(async user => {
     if (user) {
