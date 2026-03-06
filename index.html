@@ -464,6 +464,23 @@
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes shake  { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
     .task-card, .wish-card, .note-card, .archive-card { animation: fadeUp 0.25s ease; }
+  /* ── Floating action button ───────────────────────────────────────────────── */
+  .fab {
+    position: fixed;
+    bottom: calc(72px + env(safe-area-inset-bottom) + 18px);
+    right: 20px;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--purple); color: #fff;
+    font-size: 30px; line-height: 1;
+    border: none; cursor: pointer;
+    box-shadow: 0 4px 18px rgba(91,79,233,0.45);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .fab:active { transform: scale(0.9); box-shadow: 0 2px 8px rgba(91,79,233,0.3); }
+
   /* ── Auth / Passphrase screens ────────────────────────────────────────────── */
   #authOverlay, #passphraseOverlay {
     position: fixed; inset: 0; background: var(--bg);
@@ -530,7 +547,6 @@
 <!-- Tasks -->
 <section class="section active" id="secTasks">
   <div class="add-card">
-    <div class="add-lbl">New Task</div>
     <div class="add-row">
       <textarea class="field" id="taskInput" dir="auto" placeholder="What needs to be done?" rows="2"></textarea>
       <button class="btn-add" onclick="addTask()">Add</button>
@@ -589,13 +605,11 @@
 
 <!-- Wishes -->
 <section class="section" id="secWishes">
-  <button class="note-new-btn" onclick="openNewWishEditor()">＋ &nbsp;New Mission</button>
   <div class="list" id="wishList"></div>
 </section>
 
 <!-- Notes -->
 <section class="section" id="secNotes">
-  <button class="note-new-btn" onclick="openNewNote()">＋ &nbsp;New Note</button>
   <div class="list" id="noteList"></div>
 </section>
 
@@ -632,7 +646,7 @@
     <div class="editor-nav-title" id="edNavTitle">New Note</div>
     <div class="editor-actions">
       <button class="editor-archive-btn" id="edArchiveBtn" onclick="archiveCurrentNote()" title="Archive">📦</button>
-      <button class="editor-del" id="edDelBtn" onclick="deleteCurrentNote()" title="Delete">🗑️</button>
+      <button class="editor-del" id="edDelBtn" onclick="deleteCurrentNote()" title="Delete">✕</button>
       <button class="editor-save" onclick="saveNote()">Save</button>
     </div>
   </div>
@@ -811,7 +825,7 @@
     <div class="editor-nav-title" id="wishEdNavTitle">New Mission</div>
     <div class="editor-actions">
       <button class="editor-archive-btn" id="wishEdArchiveBtn" onclick="archiveCurrentWish()" title="Archive">📦</button>
-      <button class="editor-del" id="wishEdDelBtn" onclick="deleteCurrentWish()" title="Delete">🗑️</button>
+      <button class="editor-del" id="wishEdDelBtn" onclick="deleteCurrentWish()" title="Delete">✕</button>
       <button class="editor-save" onclick="saveWish()">Save</button>
     </div>
   </div>
@@ -2066,7 +2080,6 @@ function renderWishes() {
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
           <button class="pin-btn${w.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${w.id}','wish')" aria-label="Pin">${w.pinned?'📍':'📌'}</button>
           <div class="note-card-date">${fmtDate(w.updatedAt||w.createdAt)}</div>
-          <button class="del-btn" style="font-size:13px;padding:4px" onclick="event.stopPropagation();deleteWishCard('${w.id}')" aria-label="Delete">✕</button>
         </div>
       </div>
       ${chips?`<div class="note-chips">${chips}</div>`:''}
@@ -2092,7 +2105,6 @@ function renderNotes() {
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
           <button class="pin-btn${n.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${n.id}','note')" aria-label="Pin">${n.pinned?'📍':'📌'}</button>
           <div class="note-card-date">${fmtDate(n.updatedAt)}</div>
-          <button class="del-btn" style="font-size:13px;padding:4px" onclick="event.stopPropagation();deleteNoteCard('${n.id}')" aria-label="Delete">✕</button>
         </div>
       </div>
       ${chips?`<div class="note-chips">${chips}</div>`:''}
@@ -2402,7 +2414,20 @@ window.addEventListener('popstate',()=>{
   else if(document.getElementById('searchOverlay').classList.contains('open')){closeSearch();}
 });
 
+function fabAction() {
+  if (activeTab === 'Tasks') {
+    const inp = document.getElementById('taskInput');
+    inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => inp.focus(), 250);
+  } else if (activeTab === 'Wishes') {
+    openNewWishEditor();
+  } else if (activeTab === 'Notes') {
+    openNewNote();
+  }
+}
+
 init();
 </script>
+<button class="fab" id="fabBtn" onclick="fabAction()" aria-label="Add">＋</button>
 </body>
 </html>
