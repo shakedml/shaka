@@ -1168,9 +1168,7 @@ function _setupSnapshot() {
 // ── Auth UI ────────────────────────────────────────────────────────────────────
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if (mobile) fbAuth.signInWithRedirect(provider);
-  else fbAuth.signInWithPopup(provider).catch(console.error);
+  fbAuth.signInWithPopup(provider).catch(console.error);
 }
 function signOutUser() {
   showSheet('Sign out', 'Sign out of SHAKA?', () => {
