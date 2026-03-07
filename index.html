@@ -464,6 +464,13 @@
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes shake  { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
     .task-card, .wish-card, .note-card, .archive-card { animation: fadeUp 0.25s ease; }
+  /* ── Card MD preview ──────────────────────────────────────────────────────── */
+  .card-md-preview { max-height: 72px; overflow: hidden; pointer-events: none; font-size: 13px; color: var(--text2); line-height: 1.45; margin-top: 6px; mask-image: linear-gradient(to bottom, black 40%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%); }
+  .card-md-preview.expanded { max-height: none; mask-image: none; -webkit-mask-image: none; }
+  .card-md-preview p, .card-md-preview li { margin: 0; }
+  .card-md-preview h1,.card-md-preview h2,.card-md-preview h3 { font-size: 13px; font-weight: 700; margin: 0; }
+  .expand-btn { background: none; border: none; font-size: 11px; color: var(--purple); cursor: pointer; padding: 2px 0; margin-top: 2px; font-family: inherit; font-weight: 600; }
+
   /* ── Floating action button ───────────────────────────────────────────────── */
   .fab {
     position: fixed;
@@ -927,6 +934,8 @@ let editTaskPriority = 'none';
 let curWish      = null;
 let curWishLabels = [];
 let doneCollapsed = false;
+let _savedSel = {};          // saved textarea selections for toolbar buttons on iOS
+const expandedCards = new Set(); // note/wish IDs currently expanded on their cards
 let searchTab    = 'all';
 let calYear  = new Date().getFullYear();
 let calMonth = new Date().getMonth();
@@ -941,6 +950,14 @@ function init() {
   document.getElementById('noteContent').addEventListener('input', ()=>{
     const prev=document.getElementById('notePreview');
     if(prev?.classList.contains('active')) prev.innerHTML=markdownToHtml(document.getElementById('noteContent').value);
+  });
+  // Save selection before iOS toolbar buttons cause blur
+  ['noteContent','wishContent'].forEach(id => {
+    const ta = document.getElementById(id); if (!ta) return;
+    const save = () => { _savedSel[id] = { s: ta.selectionStart, e: ta.selectionEnd }; };
+    ta.addEventListener('blur', save);
+    ta.addEventListener('keyup', save);
+    ta.addEventListener('click', save);
   });
   document.getElementById('taskRepeat')?.addEventListener('change', onRepeatChange);
   document.getElementById('editRepeat')?.addEventListener('change', onRepeatChange);
@@ -1486,22 +1503,25 @@ function toggleMdTodo(boxEl) {
   // re-render preview
   preview.innerHTML = markdownToHtml(ta.value);
 }
+function _getSel(ta, taId) {
+  if (document.activeElement === ta) return { s: ta.selectionStart, e: ta.selectionEnd };
+  const sv = _savedSel[taId] || {};
+  return { s: sv.s ?? ta.value.length, e: sv.e ?? sv.s ?? ta.value.length };
+}
 function mdWrap(left, right, taId='noteContent') {
   const ta = document.getElementById(taId);
   if (!ta) return;
-  const s = ta.selectionStart, e = ta.selectionEnd;
+  const { s, e } = _getSel(ta, taId);
   const v = ta.value;
   const mid = v.slice(s, e) || 'text';
   ta.value = v.slice(0, s) + left + mid + right + v.slice(e);
-  const newStart = s + left.length;
-  const newEnd = newStart + mid.length;
   ta.focus();
-  ta.setSelectionRange(newStart, newEnd);
+  ta.setSelectionRange(s + left.length, s + left.length + mid.length);
 }
 function mdLinePrefix(prefix, taId='noteContent') {
   const ta = document.getElementById(taId);
   if (!ta) return;
-  const s = ta.selectionStart, e = ta.selectionEnd;
+  const { s, e } = _getSel(ta, taId);
   const v = ta.value;
   const startLine = v.lastIndexOf('\n', s - 1) + 1;
   const endLine = v.indexOf('\n', e);
@@ -1799,6 +1819,11 @@ function taskCardHtml(t, isDone) {
   </div>`;
 }
 
+function toggleCardExpand(id) {
+  expandedCards.has(id) ? expandedCards.delete(id) : expandedCards.add(id);
+  renderNotes(); renderWishes();
+}
+
 function togglePin(id, type) {
   let item;
   if (type==='task') item=state.tasks.find(x=>x.id===id);
@@ -1995,7 +2020,7 @@ function openNewWishEditor() {
   populateWishEditor(false);
   document.getElementById('wishEditorOverlay').classList.add('open');
   history.pushState({wishEditor:true},'');
-  setTimeout(()=>document.getElementById('wishEdTitle').focus(),380);
+  setTimeout(()=>document.getElementById('wishEdTitle').focus(),50);
 }
 function populateWishEditor(existing) {
   document.getElementById('wishEdTitle').value=curWish.title||'';
@@ -2071,12 +2096,20 @@ function deleteWishCard(id) {
   });
 }
 
+function _cardPreview(id, content, openFn) {
+  if (!content.trim()) return '';
+  const exp = expandedCards.has(id);
+  const moreBtn = content.trim().length > 120
+    ? `<button class="expand-btn" onclick="event.stopPropagation();toggleCardExpand('${id}')">${exp?'▲ Less':'▼ More'}</button>`
+    : '';
+  return `<div class="card-md-preview md${exp?' expanded':''}" onclick="event.stopPropagation();${openFn}">${markdownToHtml(content)}</div>${moreBtn}`;
+}
+
 function renderWishes() {
   const el=document.getElementById('wishList');
-  if(!state.wishes.length){el.innerHTML=`<div class="empty"><div class="empty-icon">⭐</div><p>No missions yet.<br>Tap "New Mission" to start!</p></div>`;return;}
+  if(!state.wishes.length){el.innerHTML=`<div class="empty"><div class="empty-icon">⭐</div><p>No missions yet.<br>Tap + to start!</p></div>`;return;}
   const sorted=[...state.wishes].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||new Date(b.updatedAt)-new Date(a.updatedAt));
   el.innerHTML=sorted.map(w=>{
-    const preview=mdToPlain(w.content).trim().slice(0,120);
     const chips=(w.labels||[]).map(l=>{const[bg,fg]=labelColor(l);return`<span class="note-chip" style="background:${bg};color:${fg}">${esc(l)}</span>`;}).join('');
     return `<div class="note-card${w.pinned?' pinned-card':''}" onclick="openWishEditor('${w.id}')">
       <div class="note-card-head">
@@ -2087,7 +2120,7 @@ function renderWishes() {
         </div>
       </div>
       ${chips?`<div class="note-chips">${chips}</div>`:''}
-      ${preview?`<div class="note-preview">${esc(preview)}</div>`:''}
+      ${_cardPreview(w.id, w.content, `openWishEditor('${w.id}')`)}
       <div class="wish-footer" style="margin-top:10px">
         <button class="btn-achieved" onclick="event.stopPropagation();achieveWish('${w.id}')">🏆 Achieved!</button>
       </div>
@@ -2098,10 +2131,9 @@ function renderWishes() {
 // ── Notes ─────────────────────────────────────────────────────────────────────
 function renderNotes() {
   const el=document.getElementById('noteList');
-  if(!state.notes.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📝</div><p>No notes yet.<br>Tap "New Note" to start writing!</p></div>`;return;}
+  if(!state.notes.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📝</div><p>No notes yet.<br>Tap + to start writing!</p></div>`;return;}
   const sorted=[...state.notes].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||new Date(b.updatedAt)-new Date(a.updatedAt));
   el.innerHTML=sorted.map(n=>{
-    const preview=mdToPlain(n.content).trim().slice(0,120);
     const chips=(n.labels||[]).map(l=>{const[bg,fg]=labelColor(l);return`<span class="note-chip" style="background:${bg};color:${fg}">${esc(l)}</span>`;}).join('');
     return `<div class="note-card${n.pinned?' pinned-card':''}" onclick="openNote('${n.id}')">
       <div class="note-card-head">
@@ -2112,7 +2144,7 @@ function renderNotes() {
         </div>
       </div>
       ${chips?`<div class="note-chips">${chips}</div>`:''}
-      ${preview?`<div class="note-preview">${esc(preview)}</div>`:''}
+      ${_cardPreview(n.id, n.content, `openNote('${n.id}')`)}
     </div>`;
   }).join('');
 }
@@ -2129,7 +2161,7 @@ function openNewNote() {
   populateEditor(false);
   document.getElementById('noteEditorOverlay').classList.add('open');
   history.pushState({noteEditor:true},'');
-  setTimeout(()=>document.getElementById('edTitle').focus(),380);
+  setTimeout(()=>document.getElementById('edTitle').focus(),50);
 }
 function openNote(id) {
   const n=state.notes.find(x=>x.id===id); if(!n) return;
@@ -2424,7 +2456,7 @@ function fabAction() {
     const inp  = document.getElementById('taskInput');
     card.style.display = '';
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    setTimeout(() => inp.focus(), 200);
+    setTimeout(() => inp.focus(), 50);
   } else if (activeTab === 'Wishes') {
     openNewWishEditor();
   } else if (activeTab === 'Notes') {
