@@ -441,8 +441,10 @@
     .edit-save:active { opacity: 0.75; }
 
     /* ── Pin button ── */
-    .pin-btn { background: none; border: none; color: var(--text3); font-size: 16px; cursor: pointer; padding: 4px 5px; border-radius: 8px; flex-shrink: 0; line-height: 1; transition: color 0.2s; }
+    .pin-btn { background: none; border: none; color: var(--text3); cursor: pointer; padding: 4px 5px; border-radius: 8px; flex-shrink: 0; line-height: 0; transition: color 0.15s, background 0.15s; display: flex; align-items: center; }
     .pin-btn.pinned { color: var(--purple); }
+    .pin-btn:hover { background: var(--bg); color: var(--text2); }
+    .pin-btn.pinned:hover { color: var(--purple); }
     .pin-btn:active { color: var(--purple); }
     .task-card.pinned-card { border-left-color: var(--purple) !important; }
     .note-card.pinned-card { border-top-color: #F57F17; }
@@ -1457,6 +1459,10 @@ function toggleDark() {
 // ── Utilities ─────────────────────────────────────────────────────────────────
 function uid()  { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function pinSvg(pinned) {
+  const f = pinned ? 'currentColor' : 'none';
+  return `<svg width="16" height="16" viewBox="0 0 24 24" fill="${f}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>`;
+}
 function stripHTML(h) { const d=document.createElement('div'); d.innerHTML=h; return d.textContent||''; }
 
 function onRepeatChange(e) {
@@ -1909,7 +1915,7 @@ function taskCardHtml(t, isDone) {
   const chips = (t.labels||[]).map(l=>{const[bg,fg]=labelColor(l);return`<span class="task-chip" style="background:${bg};color:${fg}" onclick="filterByLabel('${esc(l)}')">${esc(l)}</span>`;}).join('');
   const p = t.priority||'none';
   const isManual = taskFilter.sort==='manual' && !hasActiveFilter();
-  const pinBtn = `<button class="pin-btn${t.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${t.id}','task')" aria-label="Pin">${t.pinned?'📍':'📌'}</button>`;
+  const pinBtn = `<button class="pin-btn${t.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${t.id}','task')" aria-label="${t.pinned?'Unpin':'Pin'}" title="${t.pinned?'Unpin':'Pin'}">${pinSvg(t.pinned)}</button>`;
   const classes = ['task-card', isDone?'done-card':'', t.pinned&&!isDone?'pinned-card':''].filter(Boolean).join(' ');
   if (isDone) {
     return `<div class="${classes}" data-id="${t.id}" data-p="${p}">
@@ -2066,7 +2072,7 @@ function renderTasks() {
     const arrow = doneCollapsed ? '›' : '⌄';
     html += `<div class="done-section">
       <button class="done-toggle" onclick="toggleDoneCollapse()">
-        <span>Done (${doneTasks.length})</span>
+        <span>Done</span>
         <span style="display:flex;gap:8px;align-items:center">
           <span class="done-archive-all" onclick="event.stopPropagation();archiveAllDone()">Archive all</span>
           <span>${arrow}</span>
@@ -2358,7 +2364,7 @@ function renderWishes() {
       <div class="note-card-head">
         <div class="note-card-title">${w.title?esc(w.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-          <button class="pin-btn${w.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${w.id}','wish')" aria-label="Pin">${w.pinned?'📍':'📌'}</button>
+          <button class="pin-btn${w.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${w.id}','wish')" aria-label="${w.pinned?'Unpin':'Pin'}" title="${w.pinned?'Unpin':'Pin'}">${pinSvg(w.pinned)}</button>
           <div class="note-card-date">${fmtDate(w.updatedAt||w.createdAt)}</div>
         </div>
       </div>${chips?`<div class="note-chips">${chips}</div>`:''}
@@ -2367,7 +2373,7 @@ function renderWishes() {
       <div class="note-card-head">
         <div class="note-card-title">${w.title?esc(w.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-          <button class="pin-btn${w.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${w.id}','wish')" aria-label="Pin">${w.pinned?'📍':'📌'}</button>
+          <button class="pin-btn${w.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${w.id}','wish')" aria-label="${w.pinned?'Unpin':'Pin'}" title="${w.pinned?'Unpin':'Pin'}">${pinSvg(w.pinned)}</button>
           <div class="note-card-date">${fmtDate(w.updatedAt||w.createdAt)}</div>
         </div>
       </div>
@@ -2392,7 +2398,7 @@ function renderNotes() {
       <div class="note-card-head">
         <div class="note-card-title">${n.title?esc(n.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-          <button class="pin-btn${n.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${n.id}','note')" aria-label="Pin">${n.pinned?'📍':'📌'}</button>
+          <button class="pin-btn${n.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${n.id}','note')" aria-label="${n.pinned?'Unpin':'Pin'}" title="${n.pinned?'Unpin':'Pin'}">${pinSvg(n.pinned)}</button>
           <div class="note-card-date">${fmtDate(n.updatedAt)}</div>
         </div>
       </div>${chips?`<div class="note-chips">${chips}</div>`:''}
@@ -2401,7 +2407,7 @@ function renderNotes() {
       <div class="note-card-head">
         <div class="note-card-title">${n.title?esc(n.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-          <button class="pin-btn${n.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${n.id}','note')" aria-label="Pin">${n.pinned?'📍':'📌'}</button>
+          <button class="pin-btn${n.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${n.id}','note')" aria-label="${n.pinned?'Unpin':'Pin'}" title="${n.pinned?'Unpin':'Pin'}">${pinSvg(n.pinned)}</button>
           <div class="note-card-date">${fmtDate(n.updatedAt)}</div>
         </div>
       </div>
