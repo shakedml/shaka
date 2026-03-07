@@ -98,10 +98,6 @@
     .section { display: none; padding: 16px; }
     .section.active { display: block; }
 
-    /* ── Add Card ── */
-    .add-card { background: var(--surface); border-radius: var(--r); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
-    .add-lbl { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
-    .add-row { display: flex; gap: 8px; }
     textarea.field, input.field {
       flex: 1; background: var(--bg); border: 1.5px solid var(--border);
       border-radius: var(--r-sm); padding: 10px 12px; font-size: 15px;
@@ -118,20 +114,11 @@
     select.field:focus { border-color: var(--purple); }
     textarea.field::placeholder, input.field::placeholder { color: var(--text3); }
     .field.shake { animation: shake 0.4s ease; }
-    .reminder-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-    .reminder-lbl { font-size: 13px; color: var(--text2); white-space: nowrap; }
     input[type="datetime-local"].field { font-size: 13px; padding: 8px 10px; color-scheme: light; }
     .repeat-custom-row { display: none; align-items: center; gap: 8px; margin-top: 8px; }
     .repeat-custom-row .repeat-sub { font-size: 13px; color: var(--text2); white-space: nowrap; }
-    .btn-add {
-      background: var(--purple); color: #fff; border: none; border-radius: var(--r-sm);
-      padding: 10px 18px; font-size: 15px; font-weight: 700; font-family: inherit;
-      cursor: pointer; flex-shrink: 0; align-self: flex-end; transition: opacity 0.15s, transform 0.1s;
-    }
-    .btn-add:active { opacity: 0.75; transform: scale(0.96); }
 
     /* ── Labels & Priority ── */
-    .form-section-row { margin-top: 10px; }
     .labels-mini-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; min-height: 28px; }
     .lchip { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 100px; }
     .lchip-x { background: none; border: none; cursor: pointer; font-size: 14px; line-height: 1; color: inherit; padding: 0; opacity: 0.7; }
@@ -172,7 +159,8 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 13px; color: var(--text3); transition: all 0.2s;
     }
-    .check-btn:active, .check-btn.done { border-color: var(--green); background: var(--green); color: #fff; }
+    .check-btn:active { border-color: var(--green); background: var(--green); color: #fff; }
+    .check-btn.done { background: none; border-color: var(--border); color: var(--text3); }
     .task-body { flex: 1; min-width: 0; }
     .task-text { font-size: 15px; line-height: 1.35; word-break: break-word; unicode-bidi: plaintext; }
     .task-chips { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
@@ -457,8 +445,6 @@
     .done-toggle:active { background: var(--border); }
     .done-archive-all { font-size: 11px; font-weight: 600; color: var(--text3); opacity: 0.8; }
     .done-toggle-left { display: flex; align-items: center; gap: 6px; }
-    .done-arch-btn { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; font-family: inherit; color: var(--text2); cursor: pointer; }
-    .done-arch-btn:active { background: var(--purple); color: #fff; border-color: var(--purple); }
     .task-card.done-card { opacity: 0.65; }
     .task-card.done-card .task-text { text-decoration: line-through; color: var(--text3); }
 
@@ -582,49 +568,6 @@
 
 <!-- Tasks -->
 <section class="section active" id="secTasks">
-  <div class="add-card" id="addTaskCard" style="display:none">
-    <div class="add-row">
-      <textarea class="field" id="taskInput" dir="auto" placeholder="What needs to be done?" rows="2"></textarea>
-      <button class="btn-add" onclick="addTask()">Add</button>
-    </div>
-    <div class="reminder-row">
-      <span class="reminder-lbl">🔔 Reminder:</span>
-      <input type="datetime-local" class="field" id="taskReminder">
-    </div>
-    <div class="reminder-row">
-      <span class="reminder-lbl">🔁 Repeat:</span>
-      <select class="field" id="taskRepeat">
-        <option value="none" selected>None</option>
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-        <option value="monthly">Monthly</option>
-        <option value="yearly">Yearly</option>
-        <option value="custom">Custom…</option>
-      </select>
-    </div>
-    <div class="repeat-custom-row" id="taskRepeatCustom">
-      <span class="repeat-sub">Every</span>
-      <input type="number" min="1" value="1" class="field" id="taskRepeatEvery" style="max-width:90px">
-      <select class="field" id="taskRepeatUnit" style="max-width:150px">
-        <option value="day">day(s)</option>
-        <option value="week">week(s)</option>
-        <option value="month">month(s)</option>
-        <option value="year">year(s)</option>
-      </select>
-    </div>
-    <div class="form-section-row">
-      <div class="labels-mini-row" id="addTaskLabelsRow">
-        <input type="text" class="label-inp" id="addTaskLabelInp" placeholder="🏷️ Add label (press Enter)">
-      </div>
-    </div>
-    <div class="prow">
-      <span class="prow-lbl">Priority:</span>
-      <button class="pbtn p-none sel" id="pNone"   onclick="setNewPriority('none')">— None</button>
-      <button class="pbtn p-low"      id="pLow"    onclick="setNewPriority('low')">↑ Low</button>
-      <button class="pbtn p-medium"   id="pMedium" onclick="setNewPriority('medium')">↑↑ Medium</button>
-      <button class="pbtn p-high"     id="pHigh"   onclick="setNewPriority('high')">↑↑↑ High</button>
-    </div>
-  </div>
   <div class="filter-bar" id="filterBar">
     <div class="quick-row">
       <button class="qfbtn active" id="qf-all"     onclick="setQuickFilter('all')">All</button>
@@ -984,8 +927,6 @@ let sheetCb      = null;
 let notifTimer   = null;
 let curNote      = null;
 let curLabels    = [];
-let addTaskLabels   = [];
-let newTaskPriority = 'none';
 let taskFilter   = { quick:'all', text:'', labels:[], dateFrom:'', dateTo:'', sort:'manual' };
 let editingTaskId   = null;
 let editTaskLabels  = [];
@@ -1029,7 +970,6 @@ const MONTH_NAMES = ['January','February','March','April','May','June','July','A
 function init() {
   applyStoredTheme();
   setHeaderDate();
-  wireLabelInp('addTaskLabelInp', addTaskLabels, ()=>renderAddTaskLabels());
   document.getElementById('noteContent').addEventListener('input', ()=>{
     const prev=document.getElementById('notePreview');
     if(prev?.classList.contains('active')) prev.innerHTML=markdownToHtml(document.getElementById('noteContent').value);
@@ -1069,9 +1009,7 @@ function init() {
       ta.dispatchEvent(new Event('input'));
     });
   });
-  document.getElementById('taskRepeat')?.addEventListener('change', onRepeatChange);
   document.getElementById('editRepeat')?.addEventListener('change', onRepeatChange);
-  onRepeatChange({ target: document.getElementById('taskRepeat') });
   initSwipe();
   initFirebase();
 }
@@ -1129,6 +1067,13 @@ function wireLabelInp(id, arr, render) {
       else e.target.value = '';
     }
   });
+}
+
+function renderLabelRow(rowId, labels, removeFn, inputId, placeholder) {
+  const row = document.getElementById(rowId); if (!row) return;
+  row.innerHTML = labels.map((l, i) => chipHTML(l, true, i, `${removeFn}(${i})`)).join('') +
+    `<input type="text" class="label-inp" id="${inputId}" placeholder="${placeholder}">`;
+  wireLabelInp(inputId, labels, () => renderLabelRow(rowId, labels, removeFn, inputId, placeholder));
 }
 
 // ── Persistence ───────────────────────────────────────────────────────────────
@@ -1469,18 +1414,19 @@ function pinSvg(pinned) {
 function stripHTML(h) { const d=document.createElement('div'); d.innerHTML=h; return d.textContent||''; }
 
 function onRepeatChange(e) {
-  const sel = e && e.target ? e.target : null;
+  const sel = e?.target;
   if (!sel) return;
-  const id = sel.id;
-  const val = sel.value;
-  const isCustom = val === 'custom';
-  if (id === 'taskRepeat') {
-    const row = document.getElementById('taskRepeatCustom');
-    if (row) row.style.display = isCustom ? 'flex' : 'none';
-  } else if (id === 'editRepeat') {
-    const row = document.getElementById('editRepeatCustom');
-    if (row) row.style.display = isCustom ? 'flex' : 'none';
-  }
+  const row = document.getElementById('editRepeatCustom');
+  if (row) row.style.display = sel.value === 'custom' ? 'flex' : 'none';
+}
+
+function parseRepeat(repSel, everyEl, unitEl) {
+  const repeat = repSel?.value || 'none';
+  const repeatEvery = repeat === 'custom' ? Math.max(1, parseInt(everyEl?.value || '1', 10) || 1) : 1;
+  const repeatUnit  = repeat === 'custom'
+    ? (unitEl?.value || 'day')
+    : (repeat === 'weekly' ? 'week' : repeat === 'monthly' ? 'month' : repeat === 'yearly' ? 'year' : 'day');
+  return { repeat, repeatEvery, repeatUnit };
 }
 
 function mdToPlain(md) {
@@ -1774,49 +1720,6 @@ function switchTab(tab) {
   updateSub();
 }
 function renderAll() { renderTasks(); renderWishes(); renderNotes(); renderArchive(); updateSub(); }
-
-// ── Add Task ──────────────────────────────────────────────────────────────────
-function renderAddTaskLabels() {
-  const row = document.getElementById('addTaskLabelsRow');
-  row.innerHTML = addTaskLabels.map((l,i)=>chipHTML(l,true,i,'removeAddLabel('+i+')')).join('') +
-    `<input type="text" class="label-inp" id="addTaskLabelInp" placeholder="🏷️ Add label (press Enter)">`;
-  wireLabelInp('addTaskLabelInp', addTaskLabels, ()=>renderAddTaskLabels());
-}
-function removeAddLabel(idx) { addTaskLabels.splice(idx,1); renderAddTaskLabels(); }
-
-function setNewPriority(p) {
-  newTaskPriority = p;
-  document.getElementById('pNone').classList.toggle('sel', p==='none');
-  document.getElementById('pLow').classList.toggle('sel', p==='low');
-  document.getElementById('pMedium').classList.toggle('sel', p==='medium');
-  document.getElementById('pHigh').classList.toggle('sel', p==='high');
-}
-
-function addTask() {
-  const inp=document.getElementById('taskInput'), rem=document.getElementById('taskReminder'), rep=document.getElementById('taskRepeat');
-  const text=inp.value.trim();
-  if (!text) { shakeEl(inp); return; }
-  const repeatVal = rep?.value || 'none';
-  const everyEl = document.getElementById('taskRepeatEvery');
-  const unitEl  = document.getElementById('taskRepeatUnit');
-  const every = repeatVal==='custom'
-    ? Math.max(1, parseInt(everyEl?.value || '1', 10) || 1)
-    : 1;
-  const unit = repeatVal==='custom'
-    ? (unitEl?.value || 'day')
-    : (repeatVal==='weekly'?'week':repeatVal==='monthly'?'month':repeatVal==='yearly'?'year':'day');
-  state.tasks.push({ id:uid(), text, labels:[...addTaskLabels], priority:newTaskPriority,
-    reminder:rem.value||null, repeat:repeatVal, repeatEvery:every, repeatUnit:unit,
-    reminded:false, createdAt:new Date().toISOString() });
-  inp.value=''; rem.value=''; if (rep) rep.value='none';
-  if (everyEl) everyEl.value = '1';
-  if (unitEl) unitEl.value = 'day';
-  addTaskLabels=[]; newTaskPriority='none';
-  renderAddTaskLabels(); setNewPriority('none');
-  onRepeatChange({ target: document.getElementById('taskRepeat') });
-  document.getElementById('addTaskCard').style.display = 'none';
-  saveState(); renderTasks(); updateSub();
-}
 
 function completeTask(id) {
   const t = state.tasks.find(x=>x.id===id); if (!t || t.done) return;
@@ -2212,27 +2115,22 @@ function deleteEditTask() {
   deleteTask(id);
 }
 function renderEditLabels() {
-  const row=document.getElementById('editLabelsRow');
-  row.innerHTML=editTaskLabels.map((l,i)=>chipHTML(l,true,i,'removeEditLabel('+i+')')).join('')+
-    `<input type="text" class="label-inp" id="editLabelInp" placeholder="Add label (press Enter)">`;
-  wireLabelInp('editLabelInp', editTaskLabels, ()=>renderEditLabels());
+  renderLabelRow('editLabelsRow', editTaskLabels, 'removeEditLabel', 'editLabelInp', 'Add label (press Enter)');
 }
 function removeEditLabel(idx) { editTaskLabels.splice(idx,1); renderEditLabels(); }
 function setEditPriority(p) {
-  editTaskPriority=p;
-  ['editPNone','editPLow','editPMedium','editPHigh'].forEach(id=>{
-    document.getElementById(id).classList.toggle('sel', id.replace('editP','').toLowerCase()===p);
-  });
+  editTaskPriority = p;
+  const map = { none:'editPNone', low:'editPLow', medium:'editPMedium', high:'editPHigh' };
+  Object.entries(map).forEach(([key, id]) => document.getElementById(id).classList.toggle('sel', key === p));
 }
 function saveEditTask() {
   const text = document.getElementById('editText').value.trim();
   const reminder = document.getElementById('editReminder').value || null;
-  const repSel  = document.getElementById('editRepeat');
-  const everyEl = document.getElementById('editRepeatEvery');
-  const unitEl  = document.getElementById('editRepeatUnit');
-  const repeat  = repSel?.value || 'none';
-  const repeatEvery = repeat==='custom' ? Math.max(1, parseInt(everyEl?.value||'1',10)||1) : 1;
-  const repeatUnit  = repeat==='custom' ? (unitEl?.value||'day') : (repeat==='weekly'?'week':repeat==='monthly'?'month':repeat==='yearly'?'year':'day');
+  const { repeat, repeatEvery, repeatUnit } = parseRepeat(
+    document.getElementById('editRepeat'),
+    document.getElementById('editRepeatEvery'),
+    document.getElementById('editRepeatUnit')
+  );
   if (!editingTaskId) {
     // New task
     if (!text) return;
@@ -2291,10 +2189,7 @@ function populateWishEditor(existing) {
   renderColorPicker('wishColorRow', curWish.color, 'setWishColor');
 }
 function renderWishEditorLabels() {
-  const row=document.getElementById('wishLabelsRow');
-  row.innerHTML=curWishLabels.map((l,i)=>chipHTML(l,true,i,'removeWishLabel('+i+')')).join('')+
-    `<input type="text" class="label-inp" id="wishLabelInp" placeholder="＋ Add label (press Enter)">`;
-  wireLabelInp('wishLabelInp', curWishLabels, ()=>renderWishEditorLabels());
+  renderLabelRow('wishLabelsRow', curWishLabels, 'removeWishLabel', 'wishLabelInp', '＋ Add label (press Enter)');
 }
 function removeWishLabel(idx){curWishLabels.splice(idx,1);renderWishEditorLabels();}
 function closeWishEditor(){document.getElementById('wishEditorOverlay').classList.remove('open');curWish=null;}
@@ -2470,10 +2365,7 @@ function populateEditor(existing) {
   renderColorPicker('noteColorRow', curNote.color, 'setNoteColor');
 }
 function renderEditorLabels() {
-  const row=document.getElementById('labelsRow');
-  row.innerHTML=curLabels.map((l,i)=>chipHTML(l,true,i)).join('')+
-    `<input type="text" class="label-inp" id="labelInp" placeholder="＋ Add label (press Enter)">`;
-  wireLabelInp('labelInp', curLabels, ()=>renderEditorLabels());
+  renderLabelRow('labelsRow', curLabels, 'removeLabel', 'labelInp', '＋ Add label (press Enter)');
 }
 function removeLabel(idx){curLabels.splice(idx,1);renderEditorLabels();}
 function closeNoteEditor(){document.getElementById('noteEditorOverlay').classList.remove('open');curNote=null;}
@@ -2518,51 +2410,6 @@ function archiveCurrentNote() {
 }
 
 function noBlur(ev){ev.preventDefault();}
-function fmt(cmd){document.getElementById('noteContent').focus();document.execCommand(cmd,false,null);}
-
-// ── Checkbox helpers ──────────────────────────────────────────────────────────
-function makeCkLine() {
-  const line = document.createElement('div');
-  line.className = 'ck-line';
-  const box = document.createElement('span');
-  box.className = 'ck-box';
-  box.setAttribute('contenteditable','false');
-  box.textContent = '☐';
-  box.onclick = function(){ toggleCk(this); };
-  line.appendChild(box);
-  return line;
-}
-function placeCursorInCkLine(line) {
-  const sel = window.getSelection();
-  const range = document.createRange();
-  // Place cursor at end of line (after the box span)
-  range.setStartAfter(line.querySelector('.ck-box'));
-  range.collapse(true);
-  sel.removeAllRanges();
-  sel.addRange(range);
-}
-function insertCk() {
-  const content = document.getElementById('noteContent');
-  content.focus();
-  const sel = window.getSelection();
-  if (!sel.rangeCount) return;
-  const range = sel.getRangeAt(0);
-  range.deleteContents();
-  const line = makeCkLine();
-  range.insertNode(line);
-  // Move range after inserted node
-  range.setStartAfter(line);
-  range.collapse(true);
-  sel.removeAllRanges();
-  sel.addRange(range);
-  placeCursorInCkLine(line);
-}
-function toggleCk(span) {
-  const line = span.closest('.ck-line');
-  const isDone = !line.classList.contains('done');
-  line.classList.toggle('done', isDone);
-  span.textContent = isDone ? '☑' : '☐';
-}
 
 // ── Archive ───────────────────────────────────────────────────────────────────
 function renderArchive() {
@@ -2719,7 +2566,6 @@ document.getElementById('wishContent').addEventListener('input', ()=>{
   if(prev?.classList.contains('active')) prev.innerHTML=markdownToHtml(document.getElementById('wishContent').value);
 });
 
-document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addTask();}});
 document.getElementById('edTitle').addEventListener('input',function(){document.getElementById('edNavTitle').textContent=this.value.trim()||'New Note';});
 document.getElementById('wishEdTitle').addEventListener('input',function(){document.getElementById('wishEdNavTitle').textContent=this.value.trim()||'New Goal';});
 
