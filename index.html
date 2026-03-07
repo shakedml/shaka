@@ -546,7 +546,7 @@
 
 <!-- Tasks -->
 <section class="section active" id="secTasks">
-  <div class="add-card">
+  <div class="add-card" id="addTaskCard" style="display:none">
     <div class="add-row">
       <textarea class="field" id="taskInput" dir="auto" placeholder="What needs to be done?" rows="2"></textarea>
       <button class="btn-add" onclick="addTask()">Add</button>
@@ -1674,6 +1674,8 @@ function addTask() {
   if (unitEl) unitEl.value = 'day';
   addTaskLabels=[]; newTaskPriority='none';
   renderAddTaskLabels(); setNewPriority('none');
+  onRepeatChange({ target: document.getElementById('taskRepeat') });
+  document.getElementById('addTaskCard').style.display = 'none';
   saveState(); renderTasks(); updateSub();
 }
 
@@ -1777,27 +1779,23 @@ function taskCardHtml(t, isDone) {
   const chips = (t.labels||[]).map(l=>{const[bg,fg]=labelColor(l);return`<span class="task-chip" style="background:${bg};color:${fg}" onclick="filterByLabel('${esc(l)}')">${esc(l)}</span>`;}).join('');
   const p = t.priority||'none';
   const isManual = taskFilter.sort==='manual' && !hasActiveFilter();
-  const grip = (!isDone && isManual) ? `<div class="grip" title="Drag to reorder">${'<div class="grip-dot"></div>'.repeat(6)}</div>` : '<div style="width:14px"></div>';
-  const pinBtn = `<button class="pin-btn${t.pinned?' pinned':''}" onclick="togglePin('${t.id}','task')" aria-label="Pin">${t.pinned?'📍':'📌'}</button>`;
+  const pinBtn = `<button class="pin-btn${t.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${t.id}','task')" aria-label="Pin">${t.pinned?'📍':'📌'}</button>`;
   const classes = ['task-card', isDone?'done-card':'', t.pinned&&!isDone?'pinned-card':''].filter(Boolean).join(' ');
   if (isDone) {
     return `<div class="${classes}" data-id="${t.id}" data-p="${p}">
-      <div style="width:14px"></div>
       <button class="check-btn" onclick="uncompleteTask('${t.id}')" aria-label="Undo" title="Mark undone">↩</button>
       <div class="task-body"><div class="task-text">${esc(t.text)}</div>${chips?`<div class="task-chips">${chips}</div>`:''}</div>
       <button class="del-btn" onclick="archiveDoneTask('${t.id}')" aria-label="Archive" title="Archive">📥</button>
       <button class="del-btn" onclick="deleteTask('${t.id}')" aria-label="Delete">✕</button>
     </div>`;
   }
-  return `<div class="${classes}" data-id="${t.id}" data-p="${p}">
+  return `<div class="${classes}" data-id="${t.id}" data-p="${p}" onclick="editTask('${t.id}')">
     <div class="swipe-bg-right">✓</div>
     <div class="swipe-bg-left">🗑</div>
-    ${grip}
-    <button class="check-btn" onclick="completeTask('${t.id}')" aria-label="Complete">✓</button>
+    <button class="check-btn" onclick="event.stopPropagation();completeTask('${t.id}')" aria-label="Complete">✓</button>
     <div class="task-body"><div class="task-text">${esc(t.text)}</div>${chips?`<div class="task-chips">${chips}</div>`:''}${rep}${rh}</div>
     ${pinBtn}
-    <button class="edit-btn" onclick="editTask('${t.id}')" aria-label="Edit">✏️</button>
-    <button class="del-btn"  onclick="deleteTask('${t.id}')" aria-label="Delete">✕</button>
+    <button class="del-btn" onclick="event.stopPropagation();deleteTask('${t.id}')" aria-label="Delete">✕</button>
   </div>`;
 }
 
@@ -1859,10 +1857,16 @@ function initSortable() {
   if (!el || !state.tasks.length) return;
   if (sortableInst) sortableInst.destroy();
   sortableInst = new Sortable(el, {
-    handle:'.grip', animation:180, ghostClass:'sortable-ghost', dragClass:'sortable-drag',
+    animation: 180,
+    ghostClass: 'sortable-ghost',
+    dragClass: 'sortable-drag',
+    delay: 400,
+    delayOnTouchOnly: true,
+    filter: '.done-section',
     onEnd() {
-      const ids = [...el.querySelectorAll('.task-card')].map(c=>c.dataset.id);
-      state.tasks = ids.map(id=>state.tasks.find(t=>t.id===id)).filter(Boolean);
+      const ids = [...el.querySelectorAll('.task-card:not(.done-card)')].map(c=>c.dataset.id);
+      const done = state.tasks.filter(t=>t.done);
+      state.tasks = [...ids.map(id=>state.tasks.find(t=>t.id===id)).filter(Boolean), ...done];
       saveState();
     }
   });
@@ -2416,9 +2420,11 @@ window.addEventListener('popstate',()=>{
 
 function fabAction() {
   if (activeTab === 'Tasks') {
-    const inp = document.getElementById('taskInput');
-    inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setTimeout(() => inp.focus(), 250);
+    const card = document.getElementById('addTaskCard');
+    const inp  = document.getElementById('taskInput');
+    card.style.display = '';
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => inp.focus(), 200);
   } else if (activeTab === 'Wishes') {
     openNewWishEditor();
   } else if (activeTab === 'Notes') {
