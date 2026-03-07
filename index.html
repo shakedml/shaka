@@ -951,13 +951,40 @@ function init() {
     const prev=document.getElementById('notePreview');
     if(prev?.classList.contains('active')) prev.innerHTML=markdownToHtml(document.getElementById('noteContent').value);
   });
-  // Save selection before iOS toolbar buttons cause blur
+  // Save selection + auto-continue list items on Enter
   ['noteContent','wishContent'].forEach(id => {
     const ta = document.getElementById(id); if (!ta) return;
     const save = () => { _savedSel[id] = { s: ta.selectionStart, e: ta.selectionEnd }; };
     ta.addEventListener('blur', save);
     ta.addEventListener('keyup', save);
     ta.addEventListener('click', save);
+    ta.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+      const pos = ta.selectionStart;
+      const before = ta.value.slice(0, pos);
+      const lines = before.split('\n');
+      const cur = lines[lines.length - 1];
+      const m = cur.match(/^(\s*)(- \[[ x]\] |- |(\d+)\. )/i);
+      if (!m) return;
+      e.preventDefault();
+      const body = cur.slice(m[0].length);
+      if (!body.trim()) {
+        // Empty list item — break out of list
+        const newVal = ta.value.slice(0, pos - m[0].length) + '\n' + ta.value.slice(pos);
+        ta.value = newVal;
+        const np = pos - m[0].length + 1;
+        ta.setSelectionRange(np, np);
+      } else {
+        let prefix = m[2];
+        if (m[3]) prefix = m[1] + (parseInt(m[3]) + 1) + '. '; // increment number
+        if (/\[.\]/.test(prefix)) prefix = prefix.replace(/\[.\]/, '[ ]'); // uncheck box
+        const newVal = ta.value.slice(0, pos) + '\n' + prefix + ta.value.slice(ta.selectionEnd);
+        ta.value = newVal;
+        const np = pos + 1 + prefix.length;
+        ta.setSelectionRange(np, np);
+      }
+      ta.dispatchEvent(new Event('input'));
+    });
   });
   document.getElementById('taskRepeat')?.addEventListener('change', onRepeatChange);
   document.getElementById('editRepeat')?.addEventListener('change', onRepeatChange);
@@ -2020,7 +2047,7 @@ function openNewWishEditor() {
   populateWishEditor(false);
   document.getElementById('wishEditorOverlay').classList.add('open');
   history.pushState({wishEditor:true},'');
-  setTimeout(()=>document.getElementById('wishEdTitle').focus(),50);
+  document.getElementById('wishEdTitle').focus(); // sync focus keeps iOS keyboard
 }
 function populateWishEditor(existing) {
   document.getElementById('wishEdTitle').value=curWish.title||'';
@@ -2028,13 +2055,20 @@ function populateWishEditor(existing) {
   document.getElementById('wishContent').value=curWish.content||'';
   document.getElementById('wishEdDelBtn').style.display=existing?'':'none';
   document.getElementById('wishEdArchiveBtn').style.display=existing?'':'none';
-  // reset to edit mode
   const prev=document.getElementById('wishPreview');
   const ta  =document.getElementById('wishContent');
   const btn =document.getElementById('wishPreviewBtn');
-  if(prev) prev.classList.remove('active');
-  if(ta)   ta.classList.remove('hidden');
-  if(btn)  btn.textContent='👁️';
+  if (existing && curWish.content) {
+    // Open in view mode for existing content
+    if(prev){ prev.innerHTML=markdownToHtml(curWish.content); prev.classList.add('active'); }
+    if(ta)   ta.classList.add('hidden');
+    if(btn)  btn.textContent='✏️';
+  } else {
+    // New mission: edit mode, keyboard will open via focus in openNewWishEditor
+    if(prev) prev.classList.remove('active');
+    if(ta)   ta.classList.remove('hidden');
+    if(btn)  btn.textContent='👁️';
+  }
   renderWishEditorLabels();
 }
 function renderWishEditorLabels() {
@@ -2096,13 +2130,16 @@ function deleteWishCard(id) {
   });
 }
 
-function _cardPreview(id, content, openFn) {
+function _cardPreview(id, content) {
   if (!content.trim()) return '';
+  const isLong = content.trim().length > 120;
   const exp = expandedCards.has(id);
-  const moreBtn = content.trim().length > 120
+  // Short content: always fully visible. Long content: collapsed unless expanded.
+  const cls = (!isLong || exp) ? ' expanded' : '';
+  const btn = isLong
     ? `<button class="expand-btn" onclick="event.stopPropagation();toggleCardExpand('${id}')">${exp?'▲ Less':'▼ More'}</button>`
     : '';
-  return `<div class="card-md-preview md${exp?' expanded':''}" onclick="event.stopPropagation();${openFn}">${markdownToHtml(content)}</div>${moreBtn}`;
+  return `<div class="card-md-preview md${cls}" onclick="event.stopPropagation()">${markdownToHtml(content)}</div>${btn}`;
 }
 
 function renderWishes() {
@@ -2120,7 +2157,7 @@ function renderWishes() {
         </div>
       </div>
       ${chips?`<div class="note-chips">${chips}</div>`:''}
-      ${_cardPreview(w.id, w.content, `openWishEditor('${w.id}')`)}
+      ${_cardPreview(w.id, w.content)}
       <div class="wish-footer" style="margin-top:10px">
         <button class="btn-achieved" onclick="event.stopPropagation();achieveWish('${w.id}')">🏆 Achieved!</button>
       </div>
@@ -2144,7 +2181,7 @@ function renderNotes() {
         </div>
       </div>
       ${chips?`<div class="note-chips">${chips}</div>`:''}
-      ${_cardPreview(n.id, n.content, `openNote('${n.id}')`)}
+      ${_cardPreview(n.id, n.content)}
     </div>`;
   }).join('');
 }
@@ -2161,7 +2198,7 @@ function openNewNote() {
   populateEditor(false);
   document.getElementById('noteEditorOverlay').classList.add('open');
   history.pushState({noteEditor:true},'');
-  setTimeout(()=>document.getElementById('edTitle').focus(),50);
+  document.getElementById('edTitle').focus(); // sync focus keeps iOS keyboard
 }
 function openNote(id) {
   const n=state.notes.find(x=>x.id===id); if(!n) return;
@@ -2176,13 +2213,20 @@ function populateEditor(existing) {
   document.getElementById('noteContent').value=curNote.content||'';
   document.getElementById('edDelBtn').style.display=existing?'':'none';
   document.getElementById('edArchiveBtn').style.display=existing?'':'none';
-  // always start in edit mode
   const prev = document.getElementById('notePreview');
   const ta   = document.getElementById('noteContent');
   const btn  = document.getElementById('previewBtn');
-  if (prev) prev.classList.remove('active');
-  if (ta)   ta.classList.remove('hidden');
-  if (btn)  btn.textContent = '👁️';
+  if (existing && curNote.content) {
+    // Open existing notes in view mode
+    if(prev){ prev.innerHTML=markdownToHtml(curNote.content); prev.classList.add('active'); }
+    if(ta)   ta.classList.add('hidden');
+    if(btn)  btn.textContent='✏️';
+  } else {
+    // New note: edit mode, keyboard will open via focus in openNewNote
+    if(prev) prev.classList.remove('active');
+    if(ta)   ta.classList.remove('hidden');
+    if(btn)  btn.textContent='👁️';
+  }
   renderEditorLabels();
 }
 function renderEditorLabels() {
@@ -2455,8 +2499,7 @@ function fabAction() {
     const card = document.getElementById('addTaskCard');
     const inp  = document.getElementById('taskInput');
     card.style.display = '';
-    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    setTimeout(() => inp.focus(), 50);
+    inp.focus(); // sync focus keeps iOS keyboard
   } else if (activeTab === 'Wishes') {
     openNewWishEditor();
   } else if (activeTab === 'Notes') {
