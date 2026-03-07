@@ -464,6 +464,27 @@
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes shake  { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
     .task-card, .wish-card, .note-card, .archive-card { animation: fadeUp 0.25s ease; }
+  /* ── Note colors ──────────────────────────────────────────────────────────── */
+  :root { --nc-yellow:#FFF9C4; --nc-green:#DCEDC8; --nc-blue:#BBDEFB; --nc-pink:#FCE4EC; --nc-purple:#EDE7F6; --nc-orange:#FFE0B2; --nc-teal:#B2EBF2; --nc-red:#FFCDD2; }
+  [data-theme="dark"] { --nc-yellow:#3D3300; --nc-green:#0E2D0A; --nc-blue:#0A2340; --nc-pink:#3B0A1A; --nc-purple:#1A0E3B; --nc-orange:#3D1C00; --nc-teal:#003040; --nc-red:#3B0A0A; }
+  .note-card.nc-yellow { background:var(--nc-yellow); } .note-card.nc-green  { background:var(--nc-green); }
+  .note-card.nc-blue   { background:var(--nc-blue);   } .note-card.nc-pink   { background:var(--nc-pink);  }
+  .note-card.nc-purple { background:var(--nc-purple); } .note-card.nc-orange { background:var(--nc-orange);}
+  .note-card.nc-teal   { background:var(--nc-teal);   } .note-card.nc-red    { background:var(--nc-red);   }
+
+  /* ── Section toolbar (notes/wishes) ───────────────────────────────────────── */
+  .sec-toolbar { display:flex; align-items:center; gap:8px; padding: 0 2px 10px; }
+  .sec-sort { font-size:13px; font-family:inherit; background:var(--surface); border:1.5px solid var(--border); border-radius:10px; padding:5px 10px; color:var(--text2); cursor:pointer; flex:1; }
+  .sec-icon-btn { background:var(--surface); border:1.5px solid var(--border); border-radius:10px; padding:5px 9px; font-size:14px; cursor:pointer; color:var(--text2); transition:background 0.15s,color 0.15s; }
+  .sec-icon-btn.active { background:var(--purple); border-color:var(--purple); color:#fff; }
+
+  /* ── Color picker ──────────────────────────────────────────────────────────── */
+  .color-row { display:flex; gap:7px; padding:10px 0 4px; flex-wrap:wrap; }
+  .color-swatch { width:24px; height:24px; border-radius:50%; border:2.5px solid transparent; cursor:pointer; transition:transform 0.15s,border-color 0.15s; flex-shrink:0; }
+  .color-swatch:active { transform:scale(0.88); }
+  .color-swatch.sel { border-color:var(--purple); transform:scale(1.15); }
+  .color-swatch.nc-default { background:var(--surface); border-color:var(--border); }
+
   /* ── Card MD preview ──────────────────────────────────────────────────────── */
   .card-md-preview { max-height: 72px; overflow: hidden; pointer-events: none; font-size: 13px; color: var(--text2); line-height: 1.45; margin-top: 6px; mask-image: linear-gradient(to bottom, black 40%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%); }
   .card-md-preview.expanded { max-height: none; mask-image: none; -webkit-mask-image: none; }
@@ -612,11 +633,30 @@
 
 <!-- Wishes -->
 <section class="section" id="secWishes">
+  <div class="sec-toolbar">
+    <select class="sec-sort" id="wishSortSel" onchange="setSort('wish',this.value)">
+      <option value="updated">Last updated</option>
+      <option value="created">Date created</option>
+      <option value="alpha">A → Z</option>
+      <option value="label">By label</option>
+    </select>
+    <button class="sec-icon-btn" id="wishCompactBtn" onclick="toggleCompact('wish')" title="Title-only view">≡</button>
+  </div>
   <div class="list" id="wishList"></div>
 </section>
 
 <!-- Notes -->
 <section class="section" id="secNotes">
+  <div class="sec-toolbar">
+    <select class="sec-sort" id="noteSortSel" onchange="setSort('note',this.value)">
+      <option value="updated">Last updated</option>
+      <option value="created">Date created</option>
+      <option value="alpha">A → Z</option>
+      <option value="label">By label</option>
+    </select>
+    <button class="sec-icon-btn" id="noteCompactBtn" onclick="toggleCompact('note')" title="Title-only view">≡</button>
+    <button class="sec-icon-btn" onclick="showTemplates()" title="Templates">📋</button>
+  </div>
   <div class="list" id="noteList"></div>
 </section>
 
@@ -665,6 +705,7 @@
       <div class="labels-row" id="labelsRow">
         <input type="text" class="label-inp" id="labelInp" placeholder="＋ Add label (press Enter)">
       </div>
+      <div class="color-row" id="noteColorRow"></div>
     </div>
     <div class="editor-toolbar">
       <button class="tbtn" onpointerdown="noBlur(event)" onclick="mdWrap('**','**')" title="Bold"><strong>B</strong></button>
@@ -844,6 +885,7 @@
       <div class="labels-row" id="wishLabelsRow">
         <input type="text" class="label-inp" id="wishLabelInp" placeholder="＋ Add label (press Enter)">
       </div>
+      <div class="color-row" id="wishColorRow"></div>
     </div>
     <div class="editor-toolbar">
       <button class="tbtn" onpointerdown="noBlur(event)" onclick="mdWrap('**','**','wishContent')" title="Bold"><strong>B</strong></button>
@@ -934,8 +976,32 @@ let editTaskPriority = 'none';
 let curWish      = null;
 let curWishLabels = [];
 let doneCollapsed = false;
-let _savedSel = {};          // saved textarea selections for toolbar buttons on iOS
-const expandedCards = new Set(); // note/wish IDs currently expanded on their cards
+let _savedSel = {};
+const expandedCards = new Set();
+let noteSort    = 'updated';
+let wishSort    = 'updated';
+let noteCompact = false;
+let wishCompact = false;
+
+const CARD_COLORS = [
+  { key:'default', label:'Default' },
+  { key:'yellow',  label:'Yellow'  },
+  { key:'green',   label:'Green'   },
+  { key:'blue',    label:'Blue'    },
+  { key:'pink',    label:'Pink'    },
+  { key:'purple',  label:'Purple'  },
+  { key:'orange',  label:'Orange'  },
+  { key:'teal',    label:'Teal'    },
+  { key:'red',     label:'Red'     },
+];
+
+const NOTE_TEMPLATES = [
+  { name:'📋 Meeting Notes', content:`# Meeting Notes\n**Date:** \n**Attendees:** \n\n## Agenda\n- \n\n## Notes\n\n\n## Action Items\n- [ ] \n` },
+  { name:'📅 Daily Log',     content:`# Daily Log\n\n## Focus for today\n- [ ] \n- [ ] \n\n## Notes\n\n\n## Tomorrow\n- [ ] \n` },
+  { name:'✅ Todo List',     content:`# Todo List\n\n- [ ] \n- [ ] \n- [ ] \n` },
+  { name:'💡 Ideas',         content:`# Idea\n\n## The idea\n\n\n## Why it matters\n\n\n## Next steps\n- [ ] \n` },
+  { name:'📖 Reading Notes', content:`# Reading Notes\n**Title:** \n**Author:** \n\n## Key points\n- \n\n## Quotes\n> \n\n## Takeaways\n\n` },
+];
 let searchTab    = 'all';
 let calYear  = new Date().getFullYear();
 let calMonth = new Date().getMonth();
@@ -1070,6 +1136,7 @@ function migrateState() {
     w.content   = w.content   || '';
     w.updatedAt = w.updatedAt || w.createdAt;
     if (w.pinned === undefined) w.pinned = false;
+    if (w.color  === undefined) w.color  = null;
   });
   state.notes.forEach(n => {
     n.labels = n.labels || [];
@@ -1079,6 +1146,7 @@ function migrateState() {
     n.createdAt = n.createdAt || new Date().toISOString();
     n.updatedAt = n.updatedAt || n.createdAt;
     if (n.pinned === undefined) n.pinned = false;
+    if (n.color  === undefined) n.color  = null;
   });
 }
 function loadState() {
@@ -1851,6 +1919,70 @@ function toggleCardExpand(id) {
   renderNotes(); renderWishes();
 }
 
+function sortItems(items, sort) {
+  const r = [...items];
+  const pinFirst = (a,b) => (b.pinned?1:0)-(a.pinned?1:0);
+  if (sort==='updated') r.sort((a,b)=>pinFirst(a,b)||new Date(b.updatedAt)-new Date(a.updatedAt));
+  if (sort==='created') r.sort((a,b)=>pinFirst(a,b)||new Date(b.createdAt||b.updatedAt)-new Date(a.createdAt||a.updatedAt));
+  if (sort==='alpha')   r.sort((a,b)=>pinFirst(a,b)||(a.title||'').localeCompare(b.title||''));
+  if (sort==='label')   r.sort((a,b)=>pinFirst(a,b)||((a.labels||[])[0]||'zzz').localeCompare((b.labels||[])[0]||'zzz'));
+  return r;
+}
+function setSort(type, val) {
+  if (type==='note') { noteSort=val; renderNotes(); }
+  else               { wishSort=val; renderWishes(); }
+}
+function toggleCompact(type) {
+  if (type==='note') {
+    noteCompact=!noteCompact;
+    document.getElementById('noteCompactBtn')?.classList.toggle('active', noteCompact);
+    renderNotes();
+  } else {
+    wishCompact=!wishCompact;
+    document.getElementById('wishCompactBtn')?.classList.toggle('active', wishCompact);
+    renderWishes();
+  }
+}
+
+function showTemplates() {
+  const html = NOTE_TEMPLATES.map((t,i)=>`<button class="sht-btn" style="text-align:left;margin-bottom:6px" onclick="applyTemplate(${i})">${t.name}</button>`).join('');
+  document.getElementById('sheetTitle').textContent='Choose template';
+  document.getElementById('sheetBody').innerHTML=html;
+  document.getElementById('sheetConfirm').style.display='none';
+  document.getElementById('sheetOverlay').classList.add('open');
+  sheetCb=null;
+}
+function applyTemplate(idx) {
+  closeSheet();
+  document.getElementById('sheetConfirm').style.display='';
+  const ta = document.getElementById('noteContent');
+  if (!ta) return;
+  ta.value = NOTE_TEMPLATES[idx].content;
+  // switch to edit mode if in preview
+  const prev = document.getElementById('notePreview');
+  if (prev?.classList.contains('active')) toggleMdPreview('noteContent','notePreview','previewBtn');
+  ta.focus();
+}
+
+function renderColorPicker(rowId, currentColor, onClickFn) {
+  const row = document.getElementById(rowId); if (!row) return;
+  row.innerHTML = CARD_COLORS.map(c => {
+    const isSel = (currentColor||'default') === c.key;
+    const style = c.key==='default' ? '' : `background:var(--nc-${c.key})`;
+    return `<button class="color-swatch nc-${c.key}${isSel?' sel':''}" style="${style}" title="${c.label}" onclick="${onClickFn}('${c.key}')"></button>`;
+  }).join('');
+}
+function setNoteColor(colorKey) {
+  if (!curNote) return;
+  curNote.color = colorKey==='default' ? null : colorKey;
+  renderColorPicker('noteColorRow', curNote.color, 'setNoteColor');
+}
+function setWishColor(colorKey) {
+  if (!curWish) return;
+  curWish.color = colorKey==='default' ? null : colorKey;
+  renderColorPicker('wishColorRow', curWish.color, 'setWishColor');
+}
+
 function togglePin(id, type) {
   let item;
   if (type==='task') item=state.tasks.find(x=>x.id===id);
@@ -2070,6 +2202,7 @@ function populateWishEditor(existing) {
     if(btn)  btn.textContent='👁️';
   }
   renderWishEditorLabels();
+  renderColorPicker('wishColorRow', curWish.color, 'setWishColor');
 }
 function renderWishEditorLabels() {
   const row=document.getElementById('wishLabelsRow');
@@ -2145,10 +2278,20 @@ function _cardPreview(id, content) {
 function renderWishes() {
   const el=document.getElementById('wishList');
   if(!state.wishes.length){el.innerHTML=`<div class="empty"><div class="empty-icon">⭐</div><p>No missions yet.<br>Tap + to start!</p></div>`;return;}
-  const sorted=[...state.wishes].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||new Date(b.updatedAt)-new Date(a.updatedAt));
+  const sorted=sortItems(state.wishes, wishSort);
   el.innerHTML=sorted.map(w=>{
     const chips=(w.labels||[]).map(l=>{const[bg,fg]=labelColor(l);return`<span class="note-chip" style="background:${bg};color:${fg}">${esc(l)}</span>`;}).join('');
-    return `<div class="note-card${w.pinned?' pinned-card':''}" onclick="openWishEditor('${w.id}')">
+    const colorCls = w.color ? ` nc-${w.color}` : '';
+    if (wishCompact) return `<div class="note-card${w.pinned?' pinned-card':''}${colorCls}" onclick="openWishEditor('${w.id}')">
+      <div class="note-card-head">
+        <div class="note-card-title">${w.title?esc(w.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+          <button class="pin-btn${w.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${w.id}','wish')" aria-label="Pin">${w.pinned?'📍':'📌'}</button>
+          <div class="note-card-date">${fmtDate(w.updatedAt||w.createdAt)}</div>
+        </div>
+      </div>${chips?`<div class="note-chips">${chips}</div>`:''}
+    </div>`;
+    return `<div class="note-card${w.pinned?' pinned-card':''}${colorCls}" onclick="openWishEditor('${w.id}')">
       <div class="note-card-head">
         <div class="note-card-title">${w.title?esc(w.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
@@ -2169,10 +2312,20 @@ function renderWishes() {
 function renderNotes() {
   const el=document.getElementById('noteList');
   if(!state.notes.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📝</div><p>No notes yet.<br>Tap + to start writing!</p></div>`;return;}
-  const sorted=[...state.notes].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||new Date(b.updatedAt)-new Date(a.updatedAt));
+  const sorted=sortItems(state.notes, noteSort);
   el.innerHTML=sorted.map(n=>{
     const chips=(n.labels||[]).map(l=>{const[bg,fg]=labelColor(l);return`<span class="note-chip" style="background:${bg};color:${fg}">${esc(l)}</span>`;}).join('');
-    return `<div class="note-card${n.pinned?' pinned-card':''}" onclick="openNote('${n.id}')">
+    const colorCls = n.color ? ` nc-${n.color}` : '';
+    if (noteCompact) return `<div class="note-card${n.pinned?' pinned-card':''}${colorCls}" onclick="openNote('${n.id}')">
+      <div class="note-card-head">
+        <div class="note-card-title">${n.title?esc(n.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+          <button class="pin-btn${n.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${n.id}','note')" aria-label="Pin">${n.pinned?'📍':'📌'}</button>
+          <div class="note-card-date">${fmtDate(n.updatedAt)}</div>
+        </div>
+      </div>${chips?`<div class="note-chips">${chips}</div>`:''}
+    </div>`;
+    return `<div class="note-card${n.pinned?' pinned-card':''}${colorCls}" onclick="openNote('${n.id}')">
       <div class="note-card-head">
         <div class="note-card-title">${n.title?esc(n.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
@@ -2228,6 +2381,7 @@ function populateEditor(existing) {
     if(btn)  btn.textContent='👁️';
   }
   renderEditorLabels();
+  renderColorPicker('noteColorRow', curNote.color, 'setNoteColor');
 }
 function renderEditorLabels() {
   const row=document.getElementById('labelsRow');
@@ -2470,7 +2624,7 @@ function showSheet(title,body,onConfirm){
   sheetCb=onConfirm;
   document.getElementById('sheetConfirm').onclick=()=>{const cb=sheetCb;closeSheet();cb?.();};
 }
-function closeSheet(){document.getElementById('sheetOverlay').classList.remove('open');sheetCb=null;}
+function closeSheet(){document.getElementById('sheetOverlay').classList.remove('open');document.getElementById('sheetConfirm').style.display='';sheetCb=null;}
 
 // ── Event wiring ──────────────────────────────────────────────────────────────
 document.getElementById('sheetOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSheet();});
