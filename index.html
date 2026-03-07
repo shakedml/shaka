@@ -575,6 +575,7 @@
   #authOverlay    { z-index: 9000; }
   #passphraseOverlay { z-index: 9000; display: none; }
   .auth-logo  { font-size: 56px; line-height: 1; }
+  .auth-logo img { width: 80px; height: 80px; border-radius: 18px; }
   .auth-title { font-size: 30px; font-weight: 800; color: var(--text); }
   .auth-sub   { font-size: 14px; color: var(--text2); line-height: 1.55; max-width: 280px; }
   .google-btn {
@@ -1014,7 +1015,7 @@
 
 <!-- Auth overlay -->
 <div id="authOverlay">
-  <div class="auth-logo">🌊</div>
+  <div class="auth-logo"><img src="icon-app.png" alt="SHAKA"></div>
   <div class="auth-title">SHAKA</div>
   <div class="auth-sub" id="authSub">Sign in to sync your data securely across all your devices.</div>
 
