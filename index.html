@@ -38,11 +38,12 @@
     [data-theme="dark"] .sr-badge.note   { background: #0D2A5C; color: #90CAF9; }
     [data-theme="dark"] input[type="datetime-local"], [data-theme="dark"] input[type="date"] { color-scheme: dark; }
 
-    html { height: -webkit-fill-available; }
+    html { height: 100%; background: rgba(255,255,255,0.88); }
+    [data-theme="dark"] html { background: rgba(0,0,0,0.85); }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
       background: var(--bg); color: var(--text);
-      min-height: 100vh; min-height: -webkit-fill-available;
+      min-height: 100vh; min-height: 100dvh;
       padding-bottom: calc(72px + env(safe-area-inset-bottom));
       overscroll-behavior: none;
     }
@@ -521,7 +522,7 @@
   .streak-badge { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; color: var(--orange); background: rgba(255,149,0,0.12); border-radius: 100px; padding: 2px 7px; margin-top: 4px; }
 
   /* ── Bulk action bar ───────────────────────────────────────────────────────── */
-  .bulk-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 300; background: var(--surface); border-top: 1.5px solid var(--border); padding: 10px 14px calc(10px + 72px + env(safe-area-inset-bottom)); display: flex; gap: 8px; align-items: center; box-shadow: 0 -2px 12px rgba(0,0,0,0.08); transform: translateY(100%); transition: transform 0.25s ease; }
+  .bulk-bar { position: fixed; bottom: calc(72px + env(safe-area-inset-bottom)); left: 0; right: 0; z-index: 90; background: var(--surface); border-top: 1.5px solid var(--border); padding: 10px 14px; display: flex; gap: 8px; align-items: center; box-shadow: 0 -2px 12px rgba(0,0,0,0.08); transform: translateY(calc(100% + 72px + env(safe-area-inset-bottom) + 20px)); transition: transform 0.25s ease; }
   .bulk-bar.open { transform: translateY(0); }
   .bulk-count { flex: 1; font-size: 13px; font-weight: 600; color: var(--text2); }
   .bulk-btn { background: none; border: 1.5px solid var(--border); border-radius: 10px; padding: 7px 14px; font-size: 13px; font-weight: 600; font-family: inherit; color: var(--text2); cursor: pointer; transition: background 0.15s, color 0.15s; }
@@ -2048,8 +2049,12 @@ function hasActiveFilter() {
 
 function taskCardHtml(t, isDone) {
   const rs = remStatus(t.reminder);
-  const rh = t.reminder ? `<div class="rem-badge ${rs==='overdue'?'overdue':rs==='soon'?'soon':''}">
-    ${rs==='overdue'?'⚠️ Overdue · ':rs==='soon'?'⏰ Soon · ':'🔔 '}${fmtDT(t.reminder)}</div>` : '';
+  const _svgBell    = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`;
+  const _svgClock   = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const _svgWarn    = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+  const _rhIcon = rs==='overdue' ? _svgWarn : rs==='soon' ? _svgClock : _svgBell;
+  const _rhLabel = rs==='overdue' ? 'Overdue · ' : rs==='soon' ? 'Soon · ' : '';
+  const rh = t.reminder ? `<div class="rem-badge ${rs==='overdue'?'overdue':rs==='soon'?'soon':''}">${_rhIcon}${_rhLabel}${fmtDT(t.reminder)}</div>` : '';
   let repText = '';
   if (t.repeat && t.repeat !== 'none') {
     if (t.repeat === 'custom') {
@@ -2066,7 +2071,8 @@ function taskCardHtml(t, isDone) {
       repText = t.repeat[0].toUpperCase()+t.repeat.slice(1);
     }
   }
-  const rep = repText ? `<div class="rem-badge">🔁 ${esc(repText)}</div>` : '';
+  const _svgRepeat  = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
+  const rep = repText ? `<div class="rem-badge">${_svgRepeat} ${esc(repText)}</div>` : '';
   const chips = (t.labels||[]).map(l=>{const[bg,fg]=labelColor(l);return`<span class="task-chip" style="background:${bg};color:${fg}" onclick="filterByLabel('${esc(l)}')">${esc(l)}</span>`;}).join('');
   const p = t.priority||'none';
   const pinBtn = `<button class="pin-btn${t.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${t.id}','task')" aria-label="${t.pinned?'Unpin':'Pin'}" title="${t.pinned?'Unpin':'Pin'}">${pinSvg(t.pinned)}</button>`;
