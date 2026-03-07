@@ -236,11 +236,10 @@
     .editor-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
     .editor-save { background: var(--purple); color: #fff; border: none; border-radius: 10px; padding: 7px 14px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: opacity 0.15s; }
     .editor-save:active { opacity: 0.75; }
-    .editor-action-bar { display: none; align-items: center; gap: 10px; padding: 8px 14px 4px; border-bottom: 0.5px solid var(--border); }
-    .editor-action-bar.visible { display: flex; }
-    .gm-act-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1.5px solid var(--border); border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; color: var(--text2); transition: background 0.15s, border-color 0.15s, color 0.15s; white-space: nowrap; }
-    .gm-act-btn:active { background: var(--bg); }
-    .gm-act-btn.gm-danger:active { border-color: var(--red); color: var(--red); }
+    .editor-nav-btn { background: none; border: none; font-size: 14px; font-weight: 500; cursor: pointer; padding: 4px 2px; color: var(--text2); font-family: inherit; transition: color 0.15s; }
+    .editor-nav-btn:active { color: var(--text); }
+    .editor-nav-btn.danger { color: var(--red); opacity: 0.85; }
+    .editor-nav-btn.danger:active { opacity: 1; }
     .editor-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
     .ed-title-wrap { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 12px 16px; flex-shrink: 0; }
     .ed-title-input { width: 100%; border: none; background: none; font-size: 22px; font-weight: 700; font-family: inherit; color: var(--text); outline: none; unicode-bidi: plaintext; }
@@ -429,6 +428,8 @@
     .edit-sheet { background: var(--surface); border-radius: 20px 20px 0 0; padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); width: 100%; max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .edit-sheet-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
     .edit-sheet-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text3); }
+    .edit-delete-btn { width: 100%; margin-top: 8px; background: none; border: none; color: var(--red); font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; padding: 10px; border-radius: var(--r-sm); transition: background 0.15s; }
+    .edit-delete-btn:active { background: #FFF0EF; }
     .edit-section { margin-bottom: 14px; }
     .edit-lbl { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 6px; }
     .edit-field { width: 100%; border: 1.5px solid var(--border); border-radius: var(--r-sm); padding: 10px 12px; font-size: 15px; font-family: inherit; color: var(--text); background: var(--bg); outline: none; -webkit-appearance: none; color-scheme: light; }
@@ -450,8 +451,8 @@
     .done-header { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
     .done-toggle { display: flex; justify-content: space-between; align-items: center; flex: 1; background: var(--surface); border: none; border-radius: var(--r-sm); padding: 10px 14px; font-size: 13px; font-weight: 700; color: var(--text2); cursor: pointer; font-family: inherit; box-shadow: var(--shadow); }
     .done-toggle:active { background: var(--border); }
-    .done-archive-all { background: var(--surface); border: none; border-radius: var(--r-sm); padding: 10px 12px; font-size: 16px; cursor: pointer; box-shadow: var(--shadow); line-height: 1; flex-shrink: 0; }
-    .done-archive-all:active { background: var(--border); }
+    .done-archive-all { background: none; border: none; font-size: 12px; font-weight: 600; color: var(--text3); cursor: pointer; padding: 10px 4px; flex-shrink: 0; font-family: inherit; }
+    .done-archive-all:active { color: var(--purple); }
     .done-toggle-left { display: flex; align-items: center; gap: 6px; }
     .done-arch-btn { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; font-family: inherit; color: var(--text2); cursor: pointer; }
     .done-arch-btn:active { background: var(--purple); color: #fff; border-color: var(--purple); }
@@ -685,7 +686,6 @@
   </button>
   <button class="tab-btn"        id="tabArchive" onclick="switchTab('Archive')">
     <span class="tab-icon">🗂️</span><span class="tab-label">Archive</span>
-    <span class="tab-badge" id="archBadge"></span>
   </button>
 </nav>
 
@@ -695,12 +695,10 @@
     <button class="editor-back" onclick="closeNoteEditor()">‹ Back</button>
     <div class="editor-nav-title" id="edNavTitle">New Note</div>
     <div class="editor-actions">
+      <button class="editor-nav-btn" id="edArchiveBtn" onclick="archiveCurrentNote()">Archive</button>
+      <button class="editor-nav-btn danger" id="edDelBtn" onclick="deleteCurrentNote()">Delete</button>
       <button class="editor-save" onclick="saveNote()">Save</button>
     </div>
-  </div>
-  <div class="editor-action-bar" id="edActionBar">
-    <button class="gm-act-btn" id="edArchiveBtn" onclick="archiveCurrentNote()">🗂️ Archive</button>
-    <button class="gm-act-btn gm-danger" id="edDelBtn" onclick="deleteCurrentNote()">🗑 Delete</button>
   </div>
   <div class="editor-body">
     <div class="ed-title-wrap">
@@ -822,12 +820,12 @@
 <div class="edit-sheet-overlay" id="editSheetOverlay">
   <div class="edit-sheet">
     <div class="edit-sheet-title">
-      <span>Edit Task</span>
+      <span id="editSheetHeading">Edit Task</span>
       <button class="edit-sheet-close" onclick="closeEditSheet()">✕</button>
     </div>
     <div class="edit-section">
       <div class="edit-lbl">Task</div>
-      <textarea class="edit-field" id="editText" dir="auto" rows="3"></textarea>
+      <textarea class="edit-field" id="editText" dir="auto" rows="3" placeholder="What needs to be done?"></textarea>
     </div>
     <div class="edit-section">
       <div class="edit-lbl">🔔 Reminder</div>
@@ -869,7 +867,8 @@
         <button class="pbtn p-high"     id="editPHigh"   onclick="setEditPriority('high')">↑↑↑ High</button>
       </div>
     </div>
-    <button class="edit-save" onclick="saveEditTask()">Save Changes</button>
+    <button class="edit-save" onclick="saveEditTask()">Save</button>
+    <button class="edit-delete-btn" id="editDeleteBtn" onclick="deleteEditTask()" style="display:none">Delete Task</button>
   </div>
 </div>
 
@@ -879,12 +878,10 @@
     <button class="editor-back" onclick="closeWishEditor()">‹ Back</button>
     <div class="editor-nav-title" id="wishEdNavTitle">New Goal</div>
     <div class="editor-actions">
+      <button class="editor-nav-btn" id="wishEdArchiveBtn" onclick="archiveCurrentWish()">Archive</button>
+      <button class="editor-nav-btn danger" id="wishEdDelBtn" onclick="deleteCurrentWish()">Delete</button>
       <button class="editor-save" onclick="saveWish()">Save</button>
     </div>
-  </div>
-  <div class="editor-action-bar" id="wishEdActionBar">
-    <button class="gm-act-btn" id="wishEdArchiveBtn" onclick="archiveCurrentWish()">🗂️ Archive</button>
-    <button class="gm-act-btn gm-danger" id="wishEdDelBtn" onclick="deleteCurrentWish()">🗑 Delete</button>
   </div>
   <div class="editor-body">
     <div class="ed-title-wrap">
@@ -2065,7 +2062,7 @@ function renderTasks() {
           <span>Done</span>
           <span>${arrow}</span>
         </button>
-        <button class="done-archive-all" onclick="archiveAllDone()" title="Archive all done">🗂️</button>
+        <button class="done-archive-all" onclick="archiveAllDone()">Archive all</button>
       </div>
       ${doneCollapsed ? '' : doneTasks.map(t=>taskCardHtml(t,true)).join('')}
     </div>`;
@@ -2153,24 +2150,45 @@ function applyAdvFilter() {
 }
 
 // ── Edit Task ─────────────────────────────────────────────────────────────────
+function openNewTask() {
+  editingTaskId = null; editTaskLabels = []; editTaskPriority = 'none';
+  document.getElementById('editText').value = '';
+  document.getElementById('editReminder').value = '';
+  const repSel = document.getElementById('editRepeat');
+  if (repSel) { repSel.value = 'none'; onRepeatChange({target:repSel}); }
+  const everyEl = document.getElementById('editRepeatEvery');
+  const unitEl  = document.getElementById('editRepeatUnit');
+  if (everyEl) everyEl.value = 1;
+  if (unitEl)  unitEl.value = 'day';
+  renderEditLabels(); setEditPriority('none');
+  document.getElementById('editSheetHeading').textContent = 'New Task';
+  document.getElementById('editDeleteBtn').style.display = 'none';
+  document.getElementById('editSheetOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('editText').focus(), 50);
+}
 function editTask(id) {
   const t=state.tasks.find(x=>x.id===id); if(!t) return;
   editingTaskId=id; editTaskLabels=[...(t.labels||[])]; editTaskPriority=t.priority||'none';
   document.getElementById('editText').value=t.text;
   document.getElementById('editReminder').value=t.reminder||'';
   const repSel = document.getElementById('editRepeat');
-  if (repSel) {
-    repSel.value=t.repeat||'none';
-    onRepeatChange({target:repSel});
-  }
+  if (repSel) { repSel.value=t.repeat||'none'; onRepeatChange({target:repSel}); }
   const everyEl = document.getElementById('editRepeatEvery');
   const unitEl  = document.getElementById('editRepeatUnit');
   if (everyEl) everyEl.value = t.repeatEvery && t.repeatEvery>0 ? t.repeatEvery : 1;
-  if (unitEl) unitEl.value = t.repeatUnit || (t.repeat==='weekly'?'week':t.repeat==='monthly'?'month':t.repeat==='yearly'?'year':'day');
+  if (unitEl)  unitEl.value = t.repeatUnit || (t.repeat==='weekly'?'week':t.repeat==='monthly'?'month':t.repeat==='yearly'?'year':'day');
   renderEditLabels(); setEditPriority(editTaskPriority);
+  document.getElementById('editSheetHeading').textContent = 'Edit Task';
+  document.getElementById('editDeleteBtn').style.display = '';
   document.getElementById('editSheetOverlay').classList.add('open');
 }
 function closeEditSheet() { document.getElementById('editSheetOverlay').classList.remove('open'); editingTaskId=null; }
+function deleteEditTask() {
+  if (!editingTaskId) return;
+  const id = editingTaskId;
+  closeEditSheet();
+  deleteTask(id);
+}
 function renderEditLabels() {
   const row=document.getElementById('editLabelsRow');
   row.innerHTML=editTaskLabels.map((l,i)=>chipHTML(l,true,i,'removeEditLabel('+i+')')).join('')+
@@ -2185,22 +2203,27 @@ function setEditPriority(p) {
   });
 }
 function saveEditTask() {
-  if(!editingTaskId) return;
-  const t=state.tasks.find(x=>x.id===editingTaskId); if(!t) return;
-  t.text=document.getElementById('editText').value.trim()||t.text;
-  t.reminder=document.getElementById('editReminder').value||null;
-  const repSel = document.getElementById('editRepeat');
+  const text = document.getElementById('editText').value.trim();
+  const reminder = document.getElementById('editReminder').value || null;
+  const repSel  = document.getElementById('editRepeat');
   const everyEl = document.getElementById('editRepeatEvery');
   const unitEl  = document.getElementById('editRepeatUnit');
-  t.repeat=repSel?.value||'none';
-  t.repeatEvery = t.repeat==='custom'
-    ? Math.max(1, parseInt(everyEl?.value || '1', 10) || 1)
-    : 1;
-  t.repeatUnit = t.repeat==='custom'
-    ? (unitEl?.value || 'day')
-    : (t.repeat==='weekly'?'week':t.repeat==='monthly'?'month':t.repeat==='yearly'?'year':'day');
-  t.reminded=t.reminder&&new Date(t.reminder)>Date.now()?false:t.reminded;
-  t.labels=[...editTaskLabels]; t.priority=editTaskPriority;
+  const repeat  = repSel?.value || 'none';
+  const repeatEvery = repeat==='custom' ? Math.max(1, parseInt(everyEl?.value||'1',10)||1) : 1;
+  const repeatUnit  = repeat==='custom' ? (unitEl?.value||'day') : (repeat==='weekly'?'week':repeat==='monthly'?'month':repeat==='yearly'?'year':'day');
+  if (!editingTaskId) {
+    // New task
+    if (!text) return;
+    state.tasks.unshift({ id:uid(), text, labels:[...editTaskLabels], priority:editTaskPriority,
+      reminder, repeat, repeatEvery, repeatUnit, reminded:false, done:false,
+      pinned:false, createdAt:new Date().toISOString() });
+  } else {
+    const t = state.tasks.find(x=>x.id===editingTaskId); if (!t) return;
+    t.text = text || t.text;
+    t.reminder = reminder; t.repeat = repeat; t.repeatEvery = repeatEvery; t.repeatUnit = repeatUnit;
+    t.reminded = reminder && new Date(reminder) > Date.now() ? false : t.reminded;
+    t.labels = [...editTaskLabels]; t.priority = editTaskPriority;
+  }
   saveState(); renderTasks(); updateSub(); closeEditSheet();
 }
 
@@ -2226,7 +2249,8 @@ function populateWishEditor(existing) {
   document.getElementById('wishEdTitle').value=curWish.title||'';
   document.getElementById('wishEdNavTitle').textContent=curWish.title||'New Goal';
   document.getElementById('wishContent').value=curWish.content||'';
-  document.getElementById('wishEdActionBar').classList.toggle('visible', existing);
+  document.getElementById('wishEdArchiveBtn').style.display = existing ? '' : 'none';
+  document.getElementById('wishEdDelBtn').style.display     = existing ? '' : 'none';
   const prev=document.getElementById('wishPreview');
   const ta  =document.getElementById('wishContent');
   const btn =document.getElementById('wishPreviewBtn');
@@ -2404,7 +2428,8 @@ function populateEditor(existing) {
   document.getElementById('edTitle').value=curNote.title||'';
   document.getElementById('edNavTitle').textContent=curNote.title||'New Note';
   document.getElementById('noteContent').value=curNote.content||'';
-  document.getElementById('edActionBar').classList.toggle('visible', existing);
+  document.getElementById('edArchiveBtn').style.display = existing ? '' : 'none';
+  document.getElementById('edDelBtn').style.display     = existing ? '' : 'none';
   const prev = document.getElementById('notePreview');
   const ta   = document.getElementById('noteContent');
   const btn  = document.getElementById('previewBtn');
@@ -2520,8 +2545,6 @@ function toggleCk(span) {
 // ── Archive ───────────────────────────────────────────────────────────────────
 function renderArchive() {
   const el=document.getElementById('archiveList');
-  const badge=document.getElementById('archBadge');
-  badge.textContent=state.archive.length?String(state.archive.length):'';
   if(!state.archive.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🗂️</div><p>Nothing here yet.<br>Completed tasks, goals &amp; archived notes will appear here.</p></div>`;return;}
   el.innerHTML=state.archive.map(a=>{
     const typeLabel = a.type==='task'?'Task':a.type==='wish'?'Goal':'Note';
@@ -2689,10 +2712,7 @@ window.addEventListener('popstate',()=>{
 
 function fabAction() {
   if (activeTab === 'Tasks') {
-    const card = document.getElementById('addTaskCard');
-    const inp  = document.getElementById('taskInput');
-    card.style.display = '';
-    inp.focus(); // sync focus keeps iOS keyboard
+    openNewTask();
   } else if (activeTab === 'Wishes') {
     openNewWishEditor();
   } else if (activeTab === 'Notes') {
