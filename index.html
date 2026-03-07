@@ -236,10 +236,11 @@
     .editor-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
     .editor-save { background: var(--purple); color: #fff; border: none; border-radius: 10px; padding: 7px 14px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: opacity 0.15s; }
     .editor-save:active { opacity: 0.75; }
-    .editor-del { background: none; border: none; font-size: 20px; cursor: pointer; padding: 4px 6px; color: var(--text3); transition: color 0.2s; }
-    .editor-del:active { color: var(--red); }
-    .editor-archive-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 4px 6px; color: var(--text3); transition: color 0.2s; }
-    .editor-archive-btn:active { color: var(--purple); }
+    .editor-action-bar { display: none; align-items: center; gap: 10px; padding: 8px 14px 4px; border-bottom: 0.5px solid var(--border); }
+    .editor-action-bar.visible { display: flex; }
+    .gm-act-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1.5px solid var(--border); border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; color: var(--text2); transition: background 0.15s, border-color 0.15s, color 0.15s; white-space: nowrap; }
+    .gm-act-btn:active { background: var(--bg); }
+    .gm-act-btn.gm-danger:active { border-color: var(--red); color: var(--red); }
     .editor-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
     .ed-title-wrap { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 12px 16px; flex-shrink: 0; }
     .ed-title-input { width: 100%; border: none; background: none; font-size: 22px; font-weight: 700; font-family: inherit; color: var(--text); outline: none; unicode-bidi: plaintext; }
@@ -446,8 +447,11 @@
 
     /* ── Done section ── */
     .done-section { margin-top: 12px; }
-    .done-toggle { display: flex; justify-content: space-between; align-items: center; width: 100%; background: var(--surface); border: none; border-radius: var(--r-sm); padding: 10px 14px; font-size: 13px; font-weight: 700; color: var(--text2); cursor: pointer; font-family: inherit; box-shadow: var(--shadow); margin-bottom: 6px; }
+    .done-header { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .done-toggle { display: flex; justify-content: space-between; align-items: center; flex: 1; background: var(--surface); border: none; border-radius: var(--r-sm); padding: 10px 14px; font-size: 13px; font-weight: 700; color: var(--text2); cursor: pointer; font-family: inherit; box-shadow: var(--shadow); }
     .done-toggle:active { background: var(--border); }
+    .done-archive-all { background: var(--surface); border: none; border-radius: var(--r-sm); padding: 10px 12px; font-size: 16px; cursor: pointer; box-shadow: var(--shadow); line-height: 1; flex-shrink: 0; }
+    .done-archive-all:active { background: var(--border); }
     .done-toggle-left { display: flex; align-items: center; gap: 6px; }
     .done-arch-btn { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; font-family: inherit; color: var(--text2); cursor: pointer; }
     .done-arch-btn:active { background: var(--purple); color: #fff; border-color: var(--purple); }
@@ -466,7 +470,7 @@
     .task-card, .wish-card, .note-card, .archive-card { animation: fadeUp 0.25s ease; }
   /* ── Note colors ──────────────────────────────────────────────────────────── */
   :root { --nc-yellow:#FFF9C4; --nc-green:#DCEDC8; --nc-blue:#BBDEFB; --nc-pink:#FCE4EC; --nc-purple:#EDE7F6; --nc-orange:#FFE0B2; --nc-teal:#B2EBF2; --nc-red:#FFCDD2; }
-  [data-theme="dark"] { --nc-yellow:#3D3300; --nc-green:#0E2D0A; --nc-blue:#0A2340; --nc-pink:#3B0A1A; --nc-purple:#1A0E3B; --nc-orange:#3D1C00; --nc-teal:#003040; --nc-red:#3B0A0A; }
+  [data-theme="dark"] { --nc-yellow:#5C4813; --nc-green:#1E4420; --nc-blue:#17375C; --nc-pink:#5C1F3A; --nc-purple:#3A1A6E; --nc-orange:#5C3000; --nc-teal:#0E3D4A; --nc-red:#5C1414; }
   .note-card.nc-yellow { background:var(--nc-yellow); } .note-card.nc-green  { background:var(--nc-green); }
   .note-card.nc-blue   { background:var(--nc-blue);   } .note-card.nc-pink   { background:var(--nc-pink);  }
   .note-card.nc-purple { background:var(--nc-purple); } .note-card.nc-orange { background:var(--nc-orange);}
@@ -655,7 +659,6 @@
       <option value="label">By label</option>
     </select>
     <button class="sec-icon-btn" id="noteCompactBtn" onclick="toggleCompact('note')" title="Title-only view">≡</button>
-    <button class="sec-icon-btn" onclick="showTemplates()" title="Templates">📋</button>
   </div>
   <div class="list" id="noteList"></div>
 </section>
@@ -675,7 +678,7 @@
     <span class="tab-icon">📋</span><span class="tab-label">Tasks</span>
   </button>
   <button class="tab-btn"        id="tabWishes"  onclick="switchTab('Wishes')">
-    <span class="tab-icon">⭐</span><span class="tab-label">Wishes</span>
+    <span class="tab-icon">⭐</span><span class="tab-label">Goals</span>
   </button>
   <button class="tab-btn"        id="tabNotes"   onclick="switchTab('Notes')">
     <span class="tab-icon">📝</span><span class="tab-label">Notes</span>
@@ -692,10 +695,12 @@
     <button class="editor-back" onclick="closeNoteEditor()">‹ Back</button>
     <div class="editor-nav-title" id="edNavTitle">New Note</div>
     <div class="editor-actions">
-      <button class="editor-archive-btn" id="edArchiveBtn" onclick="archiveCurrentNote()" title="Archive">📦</button>
-      <button class="editor-del" id="edDelBtn" onclick="deleteCurrentNote()" title="Delete">✕</button>
       <button class="editor-save" onclick="saveNote()">Save</button>
     </div>
+  </div>
+  <div class="editor-action-bar" id="edActionBar">
+    <button class="gm-act-btn" id="edArchiveBtn" onclick="archiveCurrentNote()">🗂️ Archive</button>
+    <button class="gm-act-btn gm-danger" id="edDelBtn" onclick="deleteCurrentNote()">🗑 Delete</button>
   </div>
   <div class="editor-body">
     <div class="ed-title-wrap">
@@ -717,6 +722,8 @@
       <button class="tbtn" onpointerdown="noBlur(event)" onclick="mdLinePrefix('1. ')"    title="Numbers">1≡</button>
       <div class="tbtn-sep"></div>
       <button class="tbtn" onpointerdown="noBlur(event)" onclick="toggleMdPreview('noteContent','notePreview','previewBtn')" title="Preview" id="previewBtn">👁️</button>
+      <div class="tbtn-sep"></div>
+      <button class="tbtn" onpointerdown="noBlur(event)" onclick="showTemplates()" title="Templates">📋</button>
     </div>
     <div class="md-row">
       <div class="md-split" id="mdSplit">
@@ -763,14 +770,14 @@
   <div class="search-tabs">
     <button class="stab active" data-tab="all"     onclick="setSearchTab('all')">All</button>
     <button class="stab"        data-tab="tasks"   onclick="setSearchTab('tasks')">Tasks</button>
-    <button class="stab"        data-tab="wishes"  onclick="setSearchTab('wishes')">Wishes</button>
+    <button class="stab"        data-tab="wishes"  onclick="setSearchTab('wishes')">Goals</button>
     <button class="stab"        data-tab="notes"   onclick="setSearchTab('notes')">Notes</button>
     <button class="stab"        data-tab="archive" onclick="setSearchTab('archive')">Archive</button>
   </div>
   <div class="search-body" id="searchBody">
     <div class="empty" style="padding:56px 20px">
       <div class="empty-icon" style="font-size:42px">🔍</div>
-      <p>Search across all your tasks,<br>wishes, and notes.</p>
+      <p>Search across all your tasks,<br>goals, and notes.</p>
     </div>
   </div>
 </div>
@@ -866,20 +873,22 @@
   </div>
 </div>
 
-<!-- Wish Editor (full-screen, same as Note Editor) -->
+<!-- Goal Editor (full-screen, same as Note Editor) -->
 <div class="note-editor-overlay" id="wishEditorOverlay">
   <div class="editor-nav">
     <button class="editor-back" onclick="closeWishEditor()">‹ Back</button>
-    <div class="editor-nav-title" id="wishEdNavTitle">New Mission</div>
+    <div class="editor-nav-title" id="wishEdNavTitle">New Goal</div>
     <div class="editor-actions">
-      <button class="editor-archive-btn" id="wishEdArchiveBtn" onclick="archiveCurrentWish()" title="Archive">📦</button>
-      <button class="editor-del" id="wishEdDelBtn" onclick="deleteCurrentWish()" title="Delete">✕</button>
       <button class="editor-save" onclick="saveWish()">Save</button>
     </div>
   </div>
+  <div class="editor-action-bar" id="wishEdActionBar">
+    <button class="gm-act-btn" id="wishEdArchiveBtn" onclick="archiveCurrentWish()">🗂️ Archive</button>
+    <button class="gm-act-btn gm-danger" id="wishEdDelBtn" onclick="deleteCurrentWish()">🗑 Delete</button>
+  </div>
   <div class="editor-body">
     <div class="ed-title-wrap">
-      <input type="text" class="ed-title-input" id="wishEdTitle" dir="auto" placeholder="Mission title…">
+      <input type="text" class="ed-title-input" id="wishEdTitle" dir="auto" placeholder="Goal title…">
     </div>
     <div class="ed-labels-wrap">
       <div class="labels-row" id="wishLabelsRow">
@@ -900,7 +909,7 @@
     </div>
     <div class="md-row">
       <div class="md-split" id="wishMdSplit">
-        <textarea class="md-input" id="wishContent" dir="auto" spellcheck="true" placeholder="Write your mission details in Markdown…"></textarea>
+        <textarea class="md-input" id="wishContent" dir="auto" spellcheck="true" placeholder="Write your goal details in Markdown…"></textarea>
         <div class="md-preview md" id="wishPreview"></div>
       </div>
       <div class="md-hint">Markdown supported: <strong># headings</strong>, <strong>**bold**</strong>, <strong>*italic*</strong>, <strong>- lists</strong>, <strong>- [ ] todos</strong></div>
@@ -1117,10 +1126,11 @@ function wireLabelInp(id, arr, render) {
 // ── Persistence ───────────────────────────────────────────────────────────────
 // ── Migration (runs on every load to normalise shape) ─────────────────────────
 function migrateState() {
-  state.tasks   = state.tasks   || [];
-  state.wishes  = state.wishes  || [];
-  state.notes   = state.notes   || [];
-  state.archive = state.archive || [];
+  state.tasks     = state.tasks     || [];
+  state.wishes    = state.wishes    || [];
+  state.notes     = state.notes     || [];
+  state.archive   = state.archive   || [];
+  state.templates = state.templates || [];
   state.tasks.forEach(t => {
     t.labels=t.labels||[];
     t.priority=t.priority||'none';
@@ -1730,10 +1740,10 @@ function setHeaderDate() {
   document.getElementById('hDate').textContent = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long'});
 }
 function updateSub() {
-  const overdueCount = state.tasks.filter(t=>t.reminder&&new Date(t.reminder)<Date.now()).length;
+  const overdueCount = state.tasks.filter(t=>!t.done&&t.reminder&&new Date(t.reminder)<Date.now()).length;
   const map = {
     Tasks:   `${state.tasks.length} task${state.tasks.length!==1?'s':''}${overdueCount?` · ⚠️ ${overdueCount} overdue`:''}`,
-    Wishes:  `${state.wishes.length} mission${state.wishes.length!==1?'s':''}`,
+    Wishes:  `${state.wishes.length} goal${state.wishes.length!==1?'s':''}`,
     Notes:   `${state.notes.length} note${state.notes.length!==1?'s':''}`,
     Archive: `${state.archive.length} completed item${state.archive.length!==1?'s':''}`
   };
@@ -1900,7 +1910,7 @@ function taskCardHtml(t, isDone) {
     return `<div class="${classes}" data-id="${t.id}" data-p="${p}">
       <button class="check-btn" onclick="uncompleteTask('${t.id}')" aria-label="Undo" title="Mark undone">↩</button>
       <div class="task-body"><div class="task-text">${esc(t.text)}</div>${chips?`<div class="task-chips">${chips}</div>`:''}</div>
-      <button class="del-btn" onclick="archiveDoneTask('${t.id}')" aria-label="Archive" title="Archive">📥</button>
+      <button class="del-btn" onclick="archiveDoneTask('${t.id}')" aria-label="Archive" title="Archive">🗂️</button>
       <button class="del-btn" onclick="deleteTask('${t.id}')" aria-label="Delete">✕</button>
     </div>`;
   }
@@ -1945,23 +1955,53 @@ function toggleCompact(type) {
 }
 
 function showTemplates() {
-  const html = NOTE_TEMPLATES.map((t,i)=>`<button class="sht-btn" style="text-align:left;margin-bottom:6px" onclick="applyTemplate(${i})">${t.name}</button>`).join('');
-  document.getElementById('sheetTitle').textContent='Choose template';
-  document.getElementById('sheetBody').innerHTML=html;
-  document.getElementById('sheetConfirm').style.display='none';
+  const custom = state.templates || [];
+  const builtIn = NOTE_TEMPLATES.map((t,i) =>
+    `<button class="sht-btn" style="text-align:left;margin-bottom:6px" onclick="applyTemplate(${i},false)">${esc(t.name)}</button>`
+  ).join('');
+  const customHtml = custom.length
+    ? `<div style="font-size:11px;font-weight:700;color:var(--text3);margin:10px 0 6px;text-transform:uppercase;letter-spacing:0.5px">My Templates</div>` +
+      custom.map((t,i) =>
+        `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <button class="sht-btn" style="text-align:left;flex:1" onclick="applyTemplate(${i},true)">${esc(t.name)}</button>
+          <button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px 6px" onclick="deleteCustomTemplate(${i})" title="Delete template">✕</button>
+        </div>`
+      ).join('')
+    : '';
+  const saveBtn = `<button class="sht-btn" style="margin-top:10px;color:var(--purple);border-color:var(--purple)" onclick="saveCurrentAsTemplate()">＋ Save current note as template</button>`;
+  document.getElementById('sheetTitle').textContent = 'Templates';
+  document.getElementById('sheetBody').innerHTML = builtIn + customHtml + saveBtn;
+  document.getElementById('sheetConfirm').style.display = 'none';
   document.getElementById('sheetOverlay').classList.add('open');
-  sheetCb=null;
+  sheetCb = null;
 }
-function applyTemplate(idx) {
+function applyTemplate(idx, isCustom) {
+  const t = isCustom ? (state.templates||[])[idx] : NOTE_TEMPLATES[idx];
+  if (!t) return;
   closeSheet();
-  document.getElementById('sheetConfirm').style.display='';
+  document.getElementById('sheetConfirm').style.display = '';
   const ta = document.getElementById('noteContent');
   if (!ta) return;
-  ta.value = NOTE_TEMPLATES[idx].content;
-  // switch to edit mode if in preview
+  ta.value = t.content;
   const prev = document.getElementById('notePreview');
   if (prev?.classList.contains('active')) toggleMdPreview('noteContent','notePreview','previewBtn');
   ta.focus();
+}
+function saveCurrentAsTemplate() {
+  closeSheet();
+  document.getElementById('sheetConfirm').style.display = '';
+  const name = prompt('Template name:');
+  if (!name?.trim()) return;
+  state.templates = state.templates || [];
+  state.templates.push({ name: name.trim(), content: document.getElementById('noteContent').value });
+  saveState();
+}
+function deleteCustomTemplate(idx) {
+  closeSheet();
+  document.getElementById('sheetConfirm').style.display = '';
+  (state.templates||[]).splice(idx, 1);
+  saveState();
+  showTemplates();
 }
 
 function renderColorPicker(rowId, currentColor, onClickFn) {
@@ -2020,13 +2060,13 @@ function renderTasks() {
   if (doneTasks.length) {
     const arrow = doneCollapsed ? '›' : '⌄';
     html += `<div class="done-section">
-      <button class="done-toggle" onclick="toggleDoneCollapse()">
-        <span>Done (${doneTasks.length})</span>
-        <span style="display:flex;gap:8px;align-items:center">
-          <span style="font-size:11px;opacity:0.7" onclick="event.stopPropagation();archiveAllDone()">Archive all</span>
+      <div class="done-header">
+        <button class="done-toggle" onclick="toggleDoneCollapse()">
+          <span>Done</span>
           <span>${arrow}</span>
-        </span>
-      </button>
+        </button>
+        <button class="done-archive-all" onclick="archiveAllDone()" title="Archive all done">🗂️</button>
+      </div>
       ${doneCollapsed ? '' : doneTasks.map(t=>taskCardHtml(t,true)).join('')}
     </div>`;
   }
@@ -2046,6 +2086,7 @@ function initSortable() {
     dragClass: 'sortable-drag',
     delay: 400,
     delayOnTouchOnly: true,
+    preventOnFilter: false,
     filter: '.done-section',
     onEnd() {
       const ids = [...el.querySelectorAll('.task-card:not(.done-card)')].map(c=>c.dataset.id);
@@ -2082,7 +2123,7 @@ function filterByLabel(l) { if(!taskFilter.labels.includes(l)) taskFilter.labels
 function renderOverdueBanner() {
   const el=document.getElementById('overdueBanner');
   if(taskFilter.quick==='overdue'){el.innerHTML='';return;}
-  const n=state.tasks.filter(t=>t.reminder&&new Date(t.reminder)<Date.now()).length;
+  const n=state.tasks.filter(t=>!t.done&&t.reminder&&new Date(t.reminder)<Date.now()).length;
   el.innerHTML=n>0?`<div class="overdue-banner" onclick="setQuickFilter('overdue')"><span>⚠️ You have ${n} overdue task${n!==1?'s':''} — tap to view</span><span>›</span></div>`:'';
 }
 function resetFilters() { taskFilter={quick:'all',text:'',labels:[],dateFrom:'',dateTo:'',sort:'manual'}; renderTasks(); }
@@ -2183,10 +2224,9 @@ function openNewWishEditor() {
 }
 function populateWishEditor(existing) {
   document.getElementById('wishEdTitle').value=curWish.title||'';
-  document.getElementById('wishEdNavTitle').textContent=curWish.title||'New Mission';
+  document.getElementById('wishEdNavTitle').textContent=curWish.title||'New Goal';
   document.getElementById('wishContent').value=curWish.content||'';
-  document.getElementById('wishEdDelBtn').style.display=existing?'':'none';
-  document.getElementById('wishEdArchiveBtn').style.display=existing?'':'none';
+  document.getElementById('wishEdActionBar').classList.toggle('visible', existing);
   const prev=document.getElementById('wishPreview');
   const ta  =document.getElementById('wishContent');
   const btn =document.getElementById('wishPreviewBtn');
@@ -2225,7 +2265,7 @@ function saveWish() {
 }
 function deleteCurrentWish() {
   if(!curWish) return;
-  showSheet('Delete Mission','Delete this mission permanently?',()=>{
+  showSheet('Delete Goal','Delete this goal permanently?',()=>{
     state.wishes=state.wishes.filter(x=>x.id!==curWish.id);
     saveState(); renderWishes(); updateSub();
     closeWishEditor();
@@ -2234,7 +2274,7 @@ function deleteCurrentWish() {
 }
 function archiveCurrentWish() {
   if(!curWish) return;
-  showSheet('Archive Mission','Move this mission to archive?',()=>{
+  showSheet('Archive Goal','Move this goal to archive?',()=>{
     curWish.title=document.getElementById('wishEdTitle').value.trim();
     curWish.content=document.getElementById('wishContent').value;
     curWish.labels=[...curWishLabels];
@@ -2242,7 +2282,7 @@ function archiveCurrentWish() {
     state.archive.unshift({
       id:uid(), type:'wish',
       title:curWish.title||'Untitled',
-      text:curWish.title||mdToPlain(curWish.content).slice(0,80)||'Untitled mission',
+      text:curWish.title||mdToPlain(curWish.content).slice(0,80)||'Untitled goal',
       content:curWish.content, labels:curWish.labels,
       completedAt:new Date().toISOString(), createdAt:curWish.createdAt
     });
@@ -2258,7 +2298,7 @@ function achieveWish(id) {
   saveState(); renderWishes(); renderArchive(); updateSub();
 }
 function deleteWishCard(id) {
-  showSheet('Delete Mission','Remove this mission from your list?',()=>{
+  showSheet('Delete Goal','Remove this goal from your list?',()=>{
     state.wishes=state.wishes.filter(x=>x.id!==id); saveState(); renderWishes(); updateSub();
   });
 }
@@ -2277,7 +2317,7 @@ function _cardPreview(id, content) {
 
 function renderWishes() {
   const el=document.getElementById('wishList');
-  if(!state.wishes.length){el.innerHTML=`<div class="empty"><div class="empty-icon">⭐</div><p>No missions yet.<br>Tap + to start!</p></div>`;return;}
+  if(!state.wishes.length){el.innerHTML=`<div class="empty"><div class="empty-icon">⭐</div><p>No goals yet.<br>Tap + to start!</p></div>`;return;}
   const sorted=sortItems(state.wishes, wishSort);
   el.innerHTML=sorted.map(w=>{
     const chips=(w.labels||[]).map(l=>{const[bg,fg]=labelColor(l);return`<span class="note-chip" style="background:${bg};color:${fg}">${esc(l)}</span>`;}).join('');
@@ -2364,8 +2404,7 @@ function populateEditor(existing) {
   document.getElementById('edTitle').value=curNote.title||'';
   document.getElementById('edNavTitle').textContent=curNote.title||'New Note';
   document.getElementById('noteContent').value=curNote.content||'';
-  document.getElementById('edDelBtn').style.display=existing?'':'none';
-  document.getElementById('edArchiveBtn').style.display=existing?'':'none';
+  document.getElementById('edActionBar').classList.toggle('visible', existing);
   const prev = document.getElementById('notePreview');
   const ta   = document.getElementById('noteContent');
   const btn  = document.getElementById('previewBtn');
@@ -2483,9 +2522,9 @@ function renderArchive() {
   const el=document.getElementById('archiveList');
   const badge=document.getElementById('archBadge');
   badge.textContent=state.archive.length?String(state.archive.length):'';
-  if(!state.archive.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🗂️</div><p>Nothing here yet.<br>Completed tasks, missions &amp; archived notes will appear here.</p></div>`;return;}
+  if(!state.archive.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🗂️</div><p>Nothing here yet.<br>Completed tasks, goals &amp; archived notes will appear here.</p></div>`;return;}
   el.innerHTML=state.archive.map(a=>{
-    const typeLabel = a.type==='task'?'Task':a.type==='wish'?'Mission':'Note';
+    const typeLabel = a.type==='task'?'Task':a.type==='wish'?'Goal':'Note';
     return `<div class="archive-card">
       <span class="arch-badge ${a.type}">${typeLabel}</span>
       <div class="arch-body"><div class="arch-text">${esc(a.text||a.title||'')}</div><div class="arch-date">✓ ${fmtDT(a.completedAt)}</div></div>
@@ -2587,7 +2626,7 @@ function closeSearch(){
   document.getElementById('searchInp').value='';
   searchTab='all';
   document.querySelectorAll('.stab').forEach(b=>b.classList.toggle('active',b.dataset.tab==='all'));
-  document.getElementById('searchBody').innerHTML=`<div class="empty" style="padding:56px 20px"><div class="empty-icon" style="font-size:42px">🔍</div><p>Search across all your tasks,<br>wishes, and notes.</p></div>`;
+  document.getElementById('searchBody').innerHTML=`<div class="empty" style="padding:56px 20px"><div class="empty-icon" style="font-size:42px">🔍</div><p>Search across all your tasks,<br>goals, and notes.</p></div>`;
 }
 function setSearchTab(tab){
   searchTab=tab;
@@ -2604,15 +2643,15 @@ function doSearch(q){
   const showN = searchTab==='all'||searchTab==='notes';
   const showA = searchTab==='all'||searchTab==='archive';
   const mT=showT?state.tasks.filter(t=>t.text.toLowerCase().includes(q)||(t.labels||[]).some(l=>l.toLowerCase().includes(q))):[];
-  const mW=showW?state.wishes.filter(w=>w.text.toLowerCase().includes(q)||(w.labels||[]).some(l=>l.toLowerCase().includes(q))):[];
+  const mW=showW?state.wishes.filter(w=>(w.title||'').toLowerCase().includes(q)||(w.content||'').toLowerCase().includes(q)||(w.labels||[]).some(l=>l.toLowerCase().includes(q))):[];
   const mN=showN?state.notes.filter(n=>(n.title||'').toLowerCase().includes(q)||mdToPlain(n.content).toLowerCase().includes(q)||(n.labels||[]).some(l=>l.toLowerCase().includes(q))):[];
   const mA=showA?state.archive.filter(a=>(a.text||'').toLowerCase().includes(q)||(a.title||'').toLowerCase().includes(q)):[];
   if(!mT.length&&!mW.length&&!mN.length&&!mA.length){el.innerHTML=`<div class="empty" style="padding:56px 20px"><div class="empty-icon" style="font-size:42px">😶</div><p>No results for "<strong>${esc(q)}</strong>"</p></div>`;return;}
   let html='';
   if(mT.length){html+=`<div class="sr-section">Tasks (${mT.length})</div>`;html+=mT.map(t=>`<div class="sr-card" onclick="closeSearch();switchTab('Tasks')"><span class="sr-ico">📋</span><div class="sr-body"><div class="sr-title">${esc(t.text)}</div>${t.reminder?`<div class="sr-sub">🔔 ${fmtDT(t.reminder)}</div>`:''}</div><span class="sr-badge task">Task</span></div>`).join('');}
-  if(mW.length){html+=`<div class="sr-section">Wishes (${mW.length})</div>`;html+=mW.map(w=>`<div class="sr-card" onclick="closeSearch();switchTab('Wishes')"><span class="sr-ico">⭐</span><div class="sr-body"><div class="sr-title">${esc(w.text)}</div><div class="sr-sub">Added ${fmtDate(w.createdAt)}</div></div><span class="sr-badge wish">Wish</span></div>`).join('');}
+  if(mW.length){html+=`<div class="sr-section">Goals (${mW.length})</div>`;html+=mW.map(w=>`<div class="sr-card" onclick="closeSearch();openWishEditor('${w.id}')"><span class="sr-ico">⭐</span><div class="sr-body"><div class="sr-title">${esc(w.title||mdToPlain(w.content).slice(0,80)||'Untitled')}</div><div class="sr-sub">Added ${fmtDate(w.createdAt)}</div></div><span class="sr-badge wish">Goal</span></div>`).join('');}
   if(mN.length){html+=`<div class="sr-section">Notes (${mN.length})</div>`;html+=mN.map(n=>{const prev=mdToPlain(n.content).slice(0,80).trim();return`<div class="sr-card" onclick="closeSearch();openNote('${n.id}')"><span class="sr-ico">📝</span><div class="sr-body"><div class="sr-title">${n.title?esc(n.title):'Untitled'}</div>${prev?`<div class="sr-sub">${esc(prev)}</div>`:''}</div><span class="sr-badge note">Note</span></div>`;}).join('');}
-  if(mA.length){html+=`<div class="sr-section">Archive (${mA.length})</div>`;html+=mA.map(a=>{const typeLabel=a.type==='task'?'Task':a.type==='wish'?'Mission':'Note';return`<div class="sr-card"><span class="sr-ico">🗂️</span><div class="sr-body"><div class="sr-title">${esc(a.text||a.title||'')}</div><div class="sr-sub">✓ ${fmtDT(a.completedAt)}</div></div><span class="sr-badge arch">${typeLabel}</span></div>`;}).join('');}
+  if(mA.length){html+=`<div class="sr-section">Archive (${mA.length})</div>`;html+=mA.map(a=>{const typeLabel=a.type==='task'?'Task':a.type==='wish'?'Goal':'Note';return`<div class="sr-card"><span class="sr-ico">🗂️</span><div class="sr-body"><div class="sr-title">${esc(a.text||a.title||'')}</div><div class="sr-sub">✓ ${fmtDT(a.completedAt)}</div></div><span class="sr-badge arch">${typeLabel}</span></div>`;}).join('');}
   el.innerHTML=html;
 }
 
@@ -2637,7 +2676,7 @@ document.getElementById('wishContent').addEventListener('input', ()=>{
 
 document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addTask();}});
 document.getElementById('edTitle').addEventListener('input',function(){document.getElementById('edNavTitle').textContent=this.value.trim()||'New Note';});
-document.getElementById('wishEdTitle').addEventListener('input',function(){document.getElementById('wishEdNavTitle').textContent=this.value.trim()||'New Mission';});
+document.getElementById('wishEdTitle').addEventListener('input',function(){document.getElementById('wishEdNavTitle').textContent=this.value.trim()||'New Goal';});
 
 function shakeEl(el){el.classList.add('shake');el.addEventListener('animationend',()=>el.classList.remove('shake'),{once:true});el.focus();}
 
