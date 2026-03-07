@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SHAKA — Generate Icons</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #0F0E17; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 32px; margin: 0; }
+    h1 { font-size: 22px; font-weight: 700; margin: 0; }
+    p { color: #888; margin: 0; font-size: 14px; text-align: center; }
+    .previews { display: flex; gap: 40px; align-items: center; }
+    .preview { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .preview span { font-size: 12px; color: #888; }
+    button { background: linear-gradient(135deg, #5B4FE9, #9747FF); color: #fff; border: none; border-radius: 12px; padding: 14px 32px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    button:active { opacity: 0.8; }
+  </style>
+</head>
+<body>
+  <h1>SHAKA Icon Generator</h1>
+  <p>Click the button to generate and download both PNG icons.<br>Save them into your SHAKA folder.</p>
+  <div class="previews">
+    <div class="preview">
+      <canvas id="appCanvas" width="180" height="180"></canvas>
+      <span>icon-app.png (180×180)<br>Home screen</span>
+    </div>
+    <div class="preview">
+      <canvas id="favCanvas" width="64" height="64" style="border-radius:50%"></canvas>
+      <span>favicon.png (64×64)<br>Browser tab</span>
+    </div>
+  </div>
+  <button onclick="downloadAll()">Download both PNGs</button>
+
+  <script>
+    function drawS(ctx, sc, strokeColor) {
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth   = 52 * sc;
+      ctx.lineCap     = 'round';
+      ctx.beginPath();
+      ctx.moveTo(310 * sc, 145 * sc);
+      ctx.bezierCurveTo(310 * sc,  95 * sc, 175 * sc,  95 * sc, 175 * sc, 185 * sc);
+      ctx.bezierCurveTo(175 * sc, 250 * sc, 340 * sc, 262 * sc, 340 * sc, 352 * sc);
+      ctx.bezierCurveTo(340 * sc, 415 * sc, 185 * sc, 415 * sc, 185 * sc, 368 * sc);
+      ctx.stroke();
+    }
+
+    // ── App icon: dark square + gradient S (180×180)
+    const appCtx = document.getElementById('appCanvas').getContext('2d');
+    const appSc  = 180 / 512;
+    const r = 112 * appSc;
+    appCtx.beginPath();
+    appCtx.roundRect(0, 0, 180, 180, r);
+    appCtx.fillStyle = '#0F0E17';
+    appCtx.fill();
+    const appGrad = appCtx.createLinearGradient(0, 180, 180, 0);
+    appGrad.addColorStop(0, '#5B4FE9');
+    appGrad.addColorStop(1, '#C084FC');
+    drawS(appCtx, appSc, appGrad);
+
+    // ── Favicon: gradient circle + white S (64×64)
+    const favCtx = document.getElementById('favCanvas').getContext('2d');
+    const favSc  = 64 / 512;
+    const favGrad = favCtx.createLinearGradient(0, 0, 64, 64);
+    favGrad.addColorStop(0, '#5B4FE9');
+    favGrad.addColorStop(1, '#9747FF');
+    favCtx.beginPath();
+    favCtx.arc(32, 32, 32, 0, Math.PI * 2);
+    favCtx.fillStyle = favGrad;
+    favCtx.fill();
+    drawS(favCtx, favSc, 'white');
+
+    function download(canvas, filename) {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = filename;
+      a.click();
+    }
+
+    function downloadAll() {
+      download(document.getElementById('appCanvas'), 'icon-app.png');
+      setTimeout(() => download(document.getElementById('favCanvas'), 'favicon.png'), 300);
+    }
+  </script>
+</body>
+</html>
