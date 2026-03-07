@@ -1309,6 +1309,8 @@ function _setupSnapshot() {
     if (!snap.exists || snap.metadata.hasPendingWrites) return;
     try {
       const decrypted = await _decrypt(snap.data(), cryptoKey);
+      // Skip re-render if this snapshot is just echoing our own last push
+      if (JSON.stringify(decrypted) === JSON.stringify(state)) return;
       _remoteLoad = true;
       state = decrypted;
       migrateState();
@@ -1920,7 +1922,7 @@ function taskCardHtml(t, isDone) {
   const classes = ['task-card', isDone?'done-card':'', t.pinned&&!isDone?'pinned-card':''].filter(Boolean).join(' ');
   if (isDone) {
     return `<div class="${classes}" data-id="${t.id}" data-p="${p}">
-      <button class="check-btn done" onclick="uncompleteTask('${t.id}')" aria-label="Mark undone" title="Mark undone"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+      <button class="check-btn done" onclick="uncompleteTask('${t.id}')" aria-label="Mark undone" title="Mark undone"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
       <div class="task-body"><div class="task-text">${esc(t.text)}</div>${chips?`<div class="task-chips">${chips}</div>`:''}</div>
       <button class="del-btn" onclick="archiveDoneTask('${t.id}')" aria-label="Archive" title="Archive"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><polyline points="9 13 12 16 15 13"/><line x1="12" y1="16" x2="12" y2="11"/></svg></button>
       <button class="del-btn" onclick="deleteTask('${t.id}')" aria-label="Delete">✕</button>
