@@ -1915,7 +1915,7 @@ function taskCardHtml(t, isDone) {
     return `<div class="${classes}" data-id="${t.id}" data-p="${p}">
       <button class="check-btn" onclick="uncompleteTask('${t.id}')" aria-label="Undo" title="Mark undone">↩</button>
       <div class="task-body"><div class="task-text">${esc(t.text)}</div>${chips?`<div class="task-chips">${chips}</div>`:''}</div>
-      <button class="del-btn" onclick="archiveDoneTask('${t.id}')" aria-label="Archive" title="Archive">🗂️</button>
+      <button class="del-btn" onclick="archiveDoneTask('${t.id}')" aria-label="Archive" title="Archive"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><polyline points="9 13 12 16 15 13"/><line x1="12" y1="16" x2="12" y2="11"/></svg></button>
       <button class="del-btn" onclick="deleteTask('${t.id}')" aria-label="Delete">✕</button>
     </div>`;
   }
