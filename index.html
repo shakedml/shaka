@@ -1456,15 +1456,23 @@ function _isStandalone() {
   return window.navigator.standalone === true ||
          window.matchMedia('(display-mode: standalone)').matches;
 }
+function _googleProvider() { return new firebase.auth.GoogleAuthProvider(); }
 function signInWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  fbAuth.signInWithPopup(provider).catch(console.error);
+  fbAuth.signInWithPopup(_googleProvider()).catch(e => {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
+      // Popup blocked (older iOS standalone) — use redirect instead
+      localStorage.setItem('shakaRedirectPending', '1');
+      fbAuth.signInWithRedirect(_googleProvider()).catch(err => {
+        localStorage.removeItem('shakaRedirectPending');
+        console.error(err);
+      });
+    } else {
+      console.error(e);
+    }
+  });
 }
-function openInSafari() {
-  // In standalone mode, popups are blocked — use redirect flow instead.
-  const provider = new firebase.auth.GoogleAuthProvider();
-  fbAuth.signInWithRedirect(provider).catch(console.error);
-}
+// Standalone PWA button calls the same sign-in function
+function openInSafari() { signInWithGoogle(); }
 function signOutUser() {
   showSheet('Sign out', 'Sign out of SHAKA?', () => {
     sessionStorage.removeItem('shakaKey');
@@ -1534,20 +1542,28 @@ function initFirebase() {
   fbDb   = firebase.firestore();
   fbDb.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 
-  // Safari/iOS requires getRedirectResult() to be called explicitly after redirect
-  fbAuth.getRedirectResult().catch(console.error);
+  // Was the user sent through a redirect sign-in flow?
+  const wasRedirecting = !!localStorage.getItem('shakaRedirectPending');
+
+  // getRedirectResult() MUST be called to complete the redirect flow.
+  // We also use it to avoid flashing the auth screen while it's resolving.
+  const redirectResultP = fbAuth.getRedirectResult()
+    .then(r  => { localStorage.removeItem('shakaRedirectPending'); return r; })
+    .catch(e => { localStorage.removeItem('shakaRedirectPending'); console.error(e); return null; });
 
   fbAuth.onAuthStateChanged(async user => {
     if (user) {
       currentUser = user;
       const cached = await _loadCachedKey();
-      if (cached) {
-        cryptoKey = cached;
-        await _loadFromFirestore();
-      } else {
-        _showPassphraseScreen();
-      }
+      if (cached) { cryptoKey = cached; await _loadFromFirestore(); }
+      else _showPassphraseScreen();
     } else {
+      if (wasRedirecting) {
+        // Wait for the redirect result before deciding to show the auth screen.
+        // If the redirect succeeded, onAuthStateChanged will fire again with the user.
+        await redirectResultP;
+        if (fbAuth.currentUser) return;
+      }
       currentUser = null;
       cryptoKey   = null;
       _showAuthOverlay();
