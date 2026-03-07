@@ -117,6 +117,12 @@
     input[type="datetime-local"].field { font-size: 13px; padding: 8px 10px; color-scheme: light; }
     .repeat-custom-row { display: none; align-items: center; gap: 8px; margin-top: 8px; }
     .repeat-custom-row .repeat-sub { font-size: 13px; color: var(--text2); white-space: nowrap; }
+    .weekday-picker { display: flex; gap: 6px; padding: 4px 0; }
+    .wday-btn { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--border); background: none; font-size: 13px; font-weight: 700; color: var(--text2); cursor: pointer; font-family: inherit; transition: background 0.15s, border-color 0.15s, color 0.15s; flex-shrink: 0; }
+    .wday-btn.sel { background: var(--purple); border-color: var(--purple); color: #fff; }
+    .monthday-picker { display: flex; flex-wrap: wrap; gap: 5px; padding: 4px 0; }
+    .mday-btn { width: 36px; height: 30px; border-radius: 8px; border: 1.5px solid var(--border); background: none; font-size: 12px; font-weight: 600; color: var(--text2); cursor: pointer; font-family: inherit; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+    .mday-btn.sel { background: var(--purple); border-color: var(--purple); color: #fff; }
 
     /* ── Labels & Priority ── */
     .labels-mini-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; min-height: 28px; }
@@ -789,7 +795,9 @@
         <option value="weekly">Weekly</option>
         <option value="monthly">Monthly</option>
         <option value="yearly">Yearly</option>
-        <option value="custom">Custom…</option>
+        <option value="weekdays">Days of week…</option>
+        <option value="monthdays">Days of month…</option>
+        <option value="custom">Custom interval…</option>
       </select>
     </div>
     <div class="edit-section repeat-custom-row" id="editRepeatCustom">
@@ -801,6 +809,14 @@
         <option value="month">month(s)</option>
         <option value="year">year(s)</option>
       </select>
+    </div>
+    <div class="edit-section" id="editWeekdaySection" style="display:none">
+      <div class="edit-lbl">Repeat on</div>
+      <div class="weekday-picker" id="editWeekdayPicker"></div>
+    </div>
+    <div class="edit-section" id="editMonthdaySection" style="display:none">
+      <div class="edit-lbl">On day(s) of month</div>
+      <div class="monthday-picker" id="editMonthdayPicker"></div>
     </div>
     <div class="edit-section">
       <div class="edit-lbl">🏷️ Labels</div>
@@ -928,9 +944,11 @@ let notifTimer   = null;
 let curNote      = null;
 let curLabels    = [];
 let taskFilter   = { quick:'all', text:'', labels:[], dateFrom:'', dateTo:'', sort:'manual' };
-let editingTaskId   = null;
-let editTaskLabels  = [];
-let editTaskPriority = 'none';
+let editingTaskId      = null;
+let editTaskLabels     = [];
+let editTaskPriority   = 'none';
+let editRepeatDays     = [];   // for 'weekdays' repeat (0=Sun … 6=Sat)
+let editRepeatMonthDays = [];  // for 'monthdays' repeat (1–31)
 let curWish      = null;
 let curWishLabels = [];
 let doneCollapsed = false;
@@ -1090,6 +1108,8 @@ function migrateState() {
     t.repeat=t.repeat||'none';
     t.repeatEvery = t.repeatEvery && t.repeatEvery>0 ? t.repeatEvery : 1;
     t.repeatUnit = t.repeatUnit || (t.repeat==='weekly'?'week':t.repeat==='monthly'?'month':t.repeat==='yearly'?'year':'day');
+    t.repeatDays      = t.repeatDays      || [];
+    t.repeatMonthDays = t.repeatMonthDays || [];
     if (t.pinned === undefined) t.pinned = false;
     if (t.done  === undefined) t.done  = false;
   });
@@ -1416,8 +1436,42 @@ function stripHTML(h) { const d=document.createElement('div'); d.innerHTML=h; re
 function onRepeatChange(e) {
   const sel = e?.target;
   if (!sel) return;
-  const row = document.getElementById('editRepeatCustom');
-  if (row) row.style.display = sel.value === 'custom' ? 'flex' : 'none';
+  const v = sel.value;
+  const customRow = document.getElementById('editRepeatCustom');
+  const wdSec     = document.getElementById('editWeekdaySection');
+  const mdSec     = document.getElementById('editMonthdaySection');
+  if (customRow) customRow.style.display = v === 'custom'    ? 'flex' : 'none';
+  if (wdSec)     wdSec.style.display     = v === 'weekdays'  ? ''     : 'none';
+  if (mdSec)     mdSec.style.display     = v === 'monthdays' ? ''     : 'none';
+}
+
+const WDAY_LABELS = ['S','M','T','W','T','F','S'];
+const WDAY_NAMES  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function ordinal(n) { const s=['th','st','nd','rd']; const v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+
+function renderWeekdayPicker() {
+  const el = document.getElementById('editWeekdayPicker'); if (!el) return;
+  el.innerHTML = WDAY_LABELS.map((l, i) =>
+    `<button class="wday-btn${editRepeatDays.includes(i)?' sel':''}" onclick="toggleEditDay(${i})">${l}</button>`
+  ).join('');
+}
+function toggleEditDay(day) {
+  const idx = editRepeatDays.indexOf(day);
+  if (idx >= 0) editRepeatDays.splice(idx, 1); else editRepeatDays.push(day);
+  editRepeatDays.sort((a,b) => a-b);
+  renderWeekdayPicker();
+}
+function renderMonthdayPicker() {
+  const el = document.getElementById('editMonthdayPicker'); if (!el) return;
+  el.innerHTML = Array.from({length:31}, (_,i) => i+1).map(d =>
+    `<button class="mday-btn${editRepeatMonthDays.includes(d)?' sel':''}" onclick="toggleEditMonthDay(${d})">${d}</button>`
+  ).join('');
+}
+function toggleEditMonthDay(day) {
+  const idx = editRepeatMonthDays.indexOf(day);
+  if (idx >= 0) editRepeatMonthDays.splice(idx, 1); else editRepeatMonthDays.push(day);
+  editRepeatMonthDays.sort((a,b) => a-b);
+  renderMonthdayPicker();
 }
 
 function parseRepeat(repSel, everyEl, unitEl) {
@@ -1648,6 +1702,22 @@ function nextRepeatDateForTask(t, from) {
     d.setFullYear(targetYear, m, Math.min(day, lastDay));
     return d;
   }
+  if (rep === 'weekdays') {
+    const days = t.repeatDays || [];
+    if (!days.length) return null;
+    const d = new Date(base);
+    d.setDate(d.getDate() + 1); // start from the day after base
+    for (let i = 0; i < 7; i++) { if (days.includes(d.getDay())) return d; d.setDate(d.getDate() + 1); }
+    return null;
+  }
+  if (rep === 'monthdays') {
+    const mdays = t.repeatMonthDays || [];
+    if (!mdays.length) return null;
+    const d = new Date(base);
+    d.setDate(d.getDate() + 1); // start from the day after base
+    for (let i = 0; i < 32; i++) { if (mdays.includes(d.getDate())) return d; d.setDate(d.getDate() + 1); }
+    return null;
+  }
   // Fallback to simple mapping
   return addRepeat(base, rep);
 }
@@ -1813,6 +1883,12 @@ function taskCardHtml(t, isDone) {
       const every = t.repeatEvery && t.repeatEvery>0 ? t.repeatEvery : 1;
       const unit = t.repeatUnit || 'day';
       repText = `Every ${every} ${unit + (every>1?'s':'')}`;
+    } else if (t.repeat === 'weekdays') {
+      const names = (t.repeatDays||[]).map(d=>WDAY_NAMES[d]).join(', ');
+      repText = names ? `Every ${names}` : 'Days of week';
+    } else if (t.repeat === 'monthdays') {
+      const days = (t.repeatMonthDays||[]).map(ordinal).join(', ');
+      repText = days ? `Monthly: ${days}` : 'Days of month';
     } else {
       repText = t.repeat[0].toUpperCase()+t.repeat.slice(1);
     }
@@ -2077,6 +2153,7 @@ function applyAdvFilter() {
 // ── Edit Task ─────────────────────────────────────────────────────────────────
 function openNewTask() {
   editingTaskId = null; editTaskLabels = []; editTaskPriority = 'none';
+  editRepeatDays = []; editRepeatMonthDays = [];
   document.getElementById('editText').value = '';
   document.getElementById('editReminder').value = '';
   const repSel = document.getElementById('editRepeat');
@@ -2086,6 +2163,7 @@ function openNewTask() {
   if (everyEl) everyEl.value = 1;
   if (unitEl)  unitEl.value = 'day';
   renderEditLabels(); setEditPriority('none');
+  renderWeekdayPicker(); renderMonthdayPicker();
   document.getElementById('editSheetHeading').textContent = 'New Task';
   document.getElementById('editDeleteBtn').style.display = 'none';
   document.getElementById('editSheetOverlay').classList.add('open');
@@ -2094,6 +2172,7 @@ function openNewTask() {
 function editTask(id) {
   const t=state.tasks.find(x=>x.id===id); if(!t) return;
   editingTaskId=id; editTaskLabels=[...(t.labels||[])]; editTaskPriority=t.priority||'none';
+  editRepeatDays=[...(t.repeatDays||[])]; editRepeatMonthDays=[...(t.repeatMonthDays||[])];
   document.getElementById('editText').value=t.text;
   document.getElementById('editReminder').value=t.reminder||'';
   const repSel = document.getElementById('editRepeat');
@@ -2103,6 +2182,7 @@ function editTask(id) {
   if (everyEl) everyEl.value = t.repeatEvery && t.repeatEvery>0 ? t.repeatEvery : 1;
   if (unitEl)  unitEl.value = t.repeatUnit || (t.repeat==='weekly'?'week':t.repeat==='monthly'?'month':t.repeat==='yearly'?'year':'day');
   renderEditLabels(); setEditPriority(editTaskPriority);
+  renderWeekdayPicker(); renderMonthdayPicker();
   document.getElementById('editSheetHeading').textContent = 'Edit Task';
   document.getElementById('editDeleteBtn').style.display = '';
   document.getElementById('editSheetOverlay').classList.add('open');
@@ -2131,16 +2211,19 @@ function saveEditTask() {
     document.getElementById('editRepeatEvery'),
     document.getElementById('editRepeatUnit')
   );
+  const repeatDays      = repeat === 'weekdays'  ? [...editRepeatDays]      : [];
+  const repeatMonthDays = repeat === 'monthdays' ? [...editRepeatMonthDays] : [];
   if (!editingTaskId) {
     // New task
     if (!text) return;
     state.tasks.unshift({ id:uid(), text, labels:[...editTaskLabels], priority:editTaskPriority,
-      reminder, repeat, repeatEvery, repeatUnit, reminded:false, done:false,
-      pinned:false, createdAt:new Date().toISOString() });
+      reminder, repeat, repeatEvery, repeatUnit, repeatDays, repeatMonthDays,
+      reminded:false, done:false, pinned:false, createdAt:new Date().toISOString() });
   } else {
     const t = state.tasks.find(x=>x.id===editingTaskId); if (!t) return;
     t.text = text || t.text;
     t.reminder = reminder; t.repeat = repeat; t.repeatEvery = repeatEvery; t.repeatUnit = repeatUnit;
+    t.repeatDays = repeatDays; t.repeatMonthDays = repeatMonthDays;
     t.reminded = reminder && new Date(reminder) > Date.now() ? false : t.reminded;
     t.labels = [...editTaskLabels]; t.priority = editTaskPriority;
   }
