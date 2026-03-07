@@ -492,6 +492,59 @@
   .card-md-preview h1,.card-md-preview h2,.card-md-preview h3 { font-size: 13px; font-weight: 700; margin: 0; }
   .expand-btn { background: none; border: none; font-size: 11px; color: var(--purple); cursor: pointer; padding: 2px 0; margin-top: 2px; font-family: inherit; font-weight: 600; }
 
+  /* ── Task colors ─────────────────────────────────────────────────────────── */
+  .task-card.nc-yellow { background:var(--nc-yellow); } .task-card.nc-green  { background:var(--nc-green);  }
+  .task-card.nc-blue   { background:var(--nc-blue);   } .task-card.nc-pink   { background:var(--nc-pink);  }
+  .task-card.nc-purple { background:var(--nc-purple); } .task-card.nc-orange { background:var(--nc-orange); }
+  .task-card.nc-teal   { background:var(--nc-teal);   } .task-card.nc-red    { background:var(--nc-red);   }
+
+  /* ── Subtasks ──────────────────────────────────────────────────────────────── */
+  .subtask-list { display: flex; flex-direction: column; gap: 2px; }
+  .subtask-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .subtask-row:last-child { border-bottom: none; }
+  .subtask-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border); background: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; color: transparent; transition: all 0.15s; }
+  .subtask-check.done { background: var(--green); border-color: var(--green); color: #fff; }
+  .subtask-text { flex: 1; font-size: 14px; color: var(--text); min-width: 0; word-break: break-word; }
+  .subtask-text.done { text-decoration: line-through; color: var(--text3); }
+  .subtask-del { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 2px; flex-shrink: 0; }
+  .subtask-add-row { display: flex; gap: 8px; margin-top: 8px; }
+  .subtask-inp { flex: 1; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--r-sm); padding: 8px 10px; font-size: 14px; font-family: inherit; color: var(--text); outline: none; transition: border-color 0.2s; }
+  .subtask-inp:focus { border-color: var(--purple); }
+  .subtask-add-btn { background: var(--purple); color: #fff; border: none; border-radius: var(--r-sm); padding: 8px 14px; font-size: 18px; font-weight: 400; font-family: inherit; cursor: pointer; line-height: 1; }
+  /* Progress bar on task card */
+  .task-progress { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .task-progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .task-progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.3s; }
+  .task-progress-lbl { font-size: 11px; color: var(--text3); white-space: nowrap; }
+
+  /* ── Streak badge ──────────────────────────────────────────────────────────── */
+  .streak-badge { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; color: var(--orange); background: rgba(255,149,0,0.12); border-radius: 100px; padding: 2px 7px; margin-top: 4px; }
+
+  /* ── Bulk action bar ───────────────────────────────────────────────────────── */
+  .bulk-bar { position: fixed; bottom: calc(72px + env(safe-area-inset-bottom)); left: 0; right: 0; z-index: 300; background: var(--surface); border-top: 1.5px solid var(--border); padding: 10px 14px; display: flex; gap: 8px; align-items: center; box-shadow: 0 -2px 12px rgba(0,0,0,0.08); transform: translateY(110%); transition: transform 0.25s ease; }
+  .bulk-bar.open { transform: translateY(0); }
+  .bulk-count { flex: 1; font-size: 13px; font-weight: 600; color: var(--text2); }
+  .bulk-btn { background: none; border: 1.5px solid var(--border); border-radius: 10px; padding: 7px 14px; font-size: 13px; font-weight: 600; font-family: inherit; color: var(--text2); cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .bulk-btn.danger { color: var(--red); border-color: var(--red); }
+  .bulk-btn.cancel { color: var(--text3); }
+  .task-card { cursor: pointer; }
+  .task-card.bulk-sel { outline: 2px solid var(--purple); outline-offset: -2px; }
+  .select-box { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; transition: all 0.15s; }
+  .select-box.sel { background: var(--purple); border-color: var(--purple); color: #fff; }
+  .adv-btn.on-bulk { background: var(--purple); color: #fff; border-color: var(--purple); }
+
+  /* ── Settings ──────────────────────────────────────────────────────────────── */
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 2px; border-bottom: 1px solid var(--border); }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-lbl { font-size: 15px; color: var(--text); font-weight: 500; }
+  .settings-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .settings-action { width: 100%; text-align: left; padding: 14px 2px; border: none; border-bottom: 1px solid var(--border); background: none; font-size: 15px; font-weight: 500; font-family: inherit; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+  .settings-action.danger { color: var(--red); }
+  .toggle-sw { width: 44px; height: 26px; border-radius: 13px; background: var(--border); border: none; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle-sw.on { background: var(--purple); }
+  .toggle-sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: transform 0.2s; }
+  .toggle-sw.on::after { transform: translateX(18px); }
+
   /* ── Floating action button ───────────────────────────────────────────────── */
   .fab {
     position: fixed;
@@ -562,11 +615,10 @@
     <div class="app-name">SHAKA</div>
     <div class="header-right">
       <div class="header-date" id="hDate"></div>
-      <button class="icon-btn" onclick="toggleDark()" id="darkBtn" title="Toggle dark mode">🌙</button>
       <button class="icon-btn" onclick="openCalendar()" title="Calendar">📅</button>
       <button class="icon-btn" onclick="openSearch()" title="Search">🔍</button>
       <span id="syncStatus" title="Sync status"></span>
-      <button class="icon-btn" id="signOutBtn" onclick="signOutUser()" title="Sign out" style="display:none;font-size:14px">👤</button>
+      <button class="icon-btn" onclick="openSettings()" title="Settings">⚙️</button>
     </div>
   </div>
   <div class="header-sub" id="hSub"></div>
@@ -581,6 +633,7 @@
       <button class="qfbtn"        id="qf-overdue" onclick="setQuickFilter('overdue')">⚠️ Overdue</button>
       <button class="qfbtn"        id="qf-week"    onclick="setQuickFilter('week')">This Week</button>
       <button class="adv-btn"      id="advBtn"     onclick="openAdvFilter()">⚙️ Filters</button>
+      <button class="adv-btn"      id="selectBtn"  onclick="toggleBulkMode()">☑ Select</button>
     </div>
     <div class="active-chips" id="activeChips"></div>
   </div>
@@ -596,6 +649,7 @@
       <option value="created">Date created</option>
       <option value="alpha">A → Z</option>
       <option value="label">By label</option>
+      <option value="manual">Manual order</option>
     </select>
     <button class="sec-icon-btn" id="wishCompactBtn" onclick="toggleCompact('wish')" title="Title-only view">≡</button>
   </div>
@@ -610,6 +664,7 @@
       <option value="created">Date created</option>
       <option value="alpha">A → Z</option>
       <option value="label">By label</option>
+      <option value="manual">Manual order</option>
     </select>
     <button class="sec-icon-btn" id="noteCompactBtn" onclick="toggleCompact('note')" title="Title-only view">≡</button>
   </div>
@@ -624,6 +679,14 @@
   </div>
   <div class="list" id="archiveList"></div>
 </section>
+
+<!-- Bulk action bar -->
+<div class="bulk-bar" id="bulkBar">
+  <span class="bulk-count" id="bulkCount">0 selected</span>
+  <button class="bulk-btn" onclick="bulkArchive()">Archive</button>
+  <button class="bulk-btn danger" onclick="bulkDelete()">Delete</button>
+  <button class="bulk-btn cancel" onclick="exitBulkMode()">Cancel</button>
+</div>
 
 <!-- Tab Bar -->
 <nav class="tab-bar">
@@ -819,9 +882,21 @@
       <div class="monthday-picker" id="editMonthdayPicker"></div>
     </div>
     <div class="edit-section">
+      <div class="edit-lbl">🎨 Color</div>
+      <div class="color-row" id="editTaskColorRow"></div>
+    </div>
+    <div class="edit-section">
       <div class="edit-lbl">🏷️ Labels</div>
       <div class="labels-mini-row" id="editLabelsRow">
         <input type="text" class="label-inp" id="editLabelInp" placeholder="Add label (press Enter)">
+      </div>
+    </div>
+    <div class="edit-section">
+      <div class="edit-lbl">✅ Subtasks</div>
+      <div class="subtask-list" id="editSubtaskList"></div>
+      <div class="subtask-add-row">
+        <input type="text" class="subtask-inp" id="subtaskInp" placeholder="Add subtask…">
+        <button class="subtask-add-btn" onclick="addEditSubtask()">+</button>
       </div>
     </div>
     <div class="edit-section">
@@ -880,6 +955,28 @@
         <div class="md-preview md" id="wishPreview"></div>
       </div>
       <div class="md-hint">Markdown supported: <strong># headings</strong>, <strong>**bold**</strong>, <strong>*italic*</strong>, <strong>- lists</strong>, <strong>- [ ] todos</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Sheet -->
+<div class="sheet-overlay" id="settingsOverlay">
+  <div class="sheet">
+    <div class="sheet-title">Settings</div>
+    <div class="sheet-body" style="padding-top:4px">
+      <div class="settings-row">
+        <div class="settings-lbl">Dark mode</div>
+        <button class="toggle-sw" id="settingsThemeToggle" onclick="toggleSettingsDark()"></button>
+      </div>
+      <button class="settings-action" onclick="exportData()">
+        <span>Export my data</span><span style="font-size:13px;color:var(--text3)">↓ JSON</span>
+      </button>
+      <button class="settings-action danger" id="settingsSignOut" onclick="signOutUser()">
+        <span>Sign out</span>
+      </button>
+    </div>
+    <div class="sheet-btns">
+      <button class="sht-btn cancel" onclick="closeSettings()">Close</button>
     </div>
   </div>
 </div>
@@ -944,11 +1041,17 @@ let notifTimer   = null;
 let curNote      = null;
 let curLabels    = [];
 let taskFilter   = { quick:'all', text:'', labels:[], dateFrom:'', dateTo:'', sort:'manual' };
-let editingTaskId      = null;
-let editTaskLabels     = [];
-let editTaskPriority   = 'none';
-let editRepeatDays     = [];   // for 'weekdays' repeat (0=Sun … 6=Sat)
-let editRepeatMonthDays = [];  // for 'monthdays' repeat (1–31)
+let editingTaskId       = null;
+let editTaskLabels      = [];
+let editTaskPriority    = 'none';
+let editTaskColor       = null;
+let editSubtasks        = [];
+let editRepeatDays      = [];   // for 'weekdays' repeat (0=Sun … 6=Sat)
+let editRepeatMonthDays = [];   // for 'monthdays' repeat (1–31)
+let bulkMode            = false;
+const selectedIds       = new Set();
+let notesSortable       = null;
+let wishesSortable      = null;
 let curWish      = null;
 let curWishLabels = [];
 let doneCollapsed = false;
@@ -1028,6 +1131,29 @@ function init() {
     });
   });
   document.getElementById('editRepeat')?.addEventListener('change', onRepeatChange);
+  // Subtask: press Enter to add
+  document.getElementById('subtaskInp')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); addEditSubtask(); }
+  });
+  // Settings overlay: tap backdrop to close
+  document.getElementById('settingsOverlay')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('settingsOverlay')) closeSettings();
+  });
+  // Offline indicator
+  function updateOnlineStatus() {
+    const el = document.getElementById('syncStatus');
+    if (!el) return;
+    if (!navigator.onLine) {
+      el.textContent = '📶';
+      el.title = 'Offline — changes will sync when reconnected';
+    } else {
+      el.textContent = '';
+      el.title = 'Sync status';
+    }
+  }
+  window.addEventListener('online',  updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus();
   initSwipe();
   initFirebase();
 }
@@ -1110,8 +1236,11 @@ function migrateState() {
     t.repeatUnit = t.repeatUnit || (t.repeat==='weekly'?'week':t.repeat==='monthly'?'month':t.repeat==='yearly'?'year':'day');
     t.repeatDays      = t.repeatDays      || [];
     t.repeatMonthDays = t.repeatMonthDays || [];
-    if (t.pinned === undefined) t.pinned = false;
-    if (t.done  === undefined) t.done  = false;
+    t.subtasks        = t.subtasks        || [];
+    t.streak          = t.streak          || 0;
+    if (t.color   === undefined) t.color   = null;
+    if (t.pinned  === undefined) t.pinned  = false;
+    if (t.done    === undefined) t.done    = false;
   });
   state.wishes.forEach(w => {
     w.labels=w.labels||[];
@@ -1333,8 +1462,6 @@ function _showAuthOverlay() {
     : 'Sign in to sync your data securely across all your devices.';
   document.getElementById('authOverlay').style.display       = 'flex';
   document.getElementById('passphraseOverlay').style.display = 'none';
-  const btn = document.getElementById('signOutBtn');
-  if (btn) btn.style.display = 'none';
 }
 function _showPassphraseScreen(errMsg = '') {
   document.getElementById('authOverlay').style.display       = 'none';
@@ -1348,8 +1475,6 @@ function _showPassphraseScreen(errMsg = '') {
 function _hideAuthScreens() {
   document.getElementById('authOverlay').style.display       = 'none';
   document.getElementById('passphraseOverlay').style.display = 'none';
-  const btn = document.getElementById('signOutBtn');
-  if (btn) btn.style.display = '';
 }
 
 // ── Passphrase submit ─────────────────────────────────────────────────────────
@@ -1415,13 +1540,33 @@ function initFirebase() {
 function applyStoredTheme() {
   const dark = localStorage.getItem('shakaDark') === '1';
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  document.getElementById('darkBtn').textContent = dark ? '☀️' : '🌙';
+  document.getElementById('settingsThemeToggle')?.classList.toggle('on', dark);
 }
 function toggleDark() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-  document.getElementById('darkBtn').textContent = isDark ? '🌙' : '☀️';
   localStorage.setItem('shakaDark', isDark ? '0' : '1');
+  document.getElementById('settingsThemeToggle')?.classList.toggle('on', !isDark);
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+function openSettings() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.getElementById('settingsThemeToggle').classList.toggle('on', isDark);
+  const so = document.getElementById('settingsSignOut');
+  if (so) so.style.display = currentUser ? '' : 'none';
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+function closeSettings() { document.getElementById('settingsOverlay').classList.remove('open'); }
+function toggleSettingsDark() { toggleDark(); }
+function exportData() {
+  const json = JSON.stringify(state, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `shaka-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -1813,11 +1958,15 @@ function completeTask(id) {
           next = bump;
         }
       }
+      const newStreak = (t.streak || 0) + 1;
       state.tasks.push({
         id: uid(), text: t.text, labels: [...(t.labels||[])], priority: t.priority||'none',
+        color: t.color||null, subtasks: [],
         reminder: next ? dtLocalValue(next) : null, repeat: t.repeat,
         repeatEvery: t.repeatEvery||1, repeatUnit: t.repeatUnit||'day',
-        reminded: false, done: false, pinned: false, createdAt: new Date().toISOString()
+        repeatDays: [...(t.repeatDays||[])], repeatMonthDays: [...(t.repeatMonthDays||[])],
+        reminded: false, done: false, pinned: false, streak: newStreak,
+        createdAt: new Date().toISOString()
       });
     }
     saveState(); renderTasks(); renderArchive(); updateSub();
@@ -1896,9 +2045,15 @@ function taskCardHtml(t, isDone) {
   const rep = repText ? `<div class="rem-badge">🔁 ${esc(repText)}</div>` : '';
   const chips = (t.labels||[]).map(l=>{const[bg,fg]=labelColor(l);return`<span class="task-chip" style="background:${bg};color:${fg}" onclick="filterByLabel('${esc(l)}')">${esc(l)}</span>`;}).join('');
   const p = t.priority||'none';
-  const isManual = taskFilter.sort==='manual' && !hasActiveFilter();
   const pinBtn = `<button class="pin-btn${t.pinned?' pinned':''}" onclick="event.stopPropagation();togglePin('${t.id}','task')" aria-label="${t.pinned?'Unpin':'Pin'}" title="${t.pinned?'Unpin':'Pin'}">${pinSvg(t.pinned)}</button>`;
-  const classes = ['task-card', isDone?'done-card':'', t.pinned&&!isDone?'pinned-card':''].filter(Boolean).join(' ');
+  const colorCls = t.color ? ` nc-${t.color}` : '';
+  const classes = ['task-card', isDone?'done-card':'', t.pinned&&!isDone?'pinned-card':'', bulkMode&&selectedIds.has(t.id)?'bulk-sel':''].filter(Boolean).join(' ') + colorCls;
+  // Subtask progress
+  const subs = t.subtasks || [];
+  const subsDone = subs.filter(s=>s.done).length;
+  const progress = (!isDone && subs.length) ? `<div class="task-progress"><div class="task-progress-bar"><div class="task-progress-fill" style="width:${Math.round(subsDone/subs.length*100)}%"></div></div><span class="task-progress-lbl">${subsDone}/${subs.length}</span></div>` : '';
+  // Streak badge (only on recurring tasks with streak >= 2)
+  const streakBadge = (!isDone && t.streak >= 2 && (t.repeat||'none')!=='none') ? `<div class="streak-badge">🔥 ${t.streak}</div>` : '';
   if (isDone) {
     return `<div class="${classes}" data-id="${t.id}" data-p="${p}">
       <button class="check-btn done" onclick="uncompleteTask('${t.id}')" aria-label="Mark undone" title="Mark undone"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
@@ -1907,11 +2062,18 @@ function taskCardHtml(t, isDone) {
       <button class="del-btn" onclick="deleteTask('${t.id}')" aria-label="Delete">✕</button>
     </div>`;
   }
+  if (bulkMode) {
+    const sel = selectedIds.has(t.id);
+    return `<div class="${classes}" data-id="${t.id}" data-p="${p}" onclick="toggleBulkSelect('${t.id}')">
+      <button class="select-box${sel?' sel':''}" onclick="event.stopPropagation();toggleBulkSelect('${t.id}')">${sel?'✓':''}</button>
+      <div class="task-body"><div class="task-text">${esc(t.text)}</div>${chips?`<div class="task-chips">${chips}</div>`:''}${progress}${rep}${rh}${streakBadge}</div>
+    </div>`;
+  }
   return `<div class="${classes}" data-id="${t.id}" data-p="${p}" onclick="editTask('${t.id}')">
     <div class="swipe-bg-right">✓</div>
     <div class="swipe-bg-left">🗑</div>
     <button class="check-btn" onclick="event.stopPropagation();completeTask('${t.id}')" aria-label="Complete">✓</button>
-    <div class="task-body"><div class="task-text">${esc(t.text)}</div>${chips?`<div class="task-chips">${chips}</div>`:''}${rep}${rh}</div>
+    <div class="task-body"><div class="task-text">${esc(t.text)}</div>${chips?`<div class="task-chips">${chips}</div>`:''}${progress}${rep}${rh}${streakBadge}</div>
     ${pinBtn}
     <button class="del-btn" onclick="event.stopPropagation();deleteTask('${t.id}')" aria-label="Delete">✕</button>
   </div>`;
@@ -1923,6 +2085,7 @@ function toggleCardExpand(id) {
 }
 
 function sortItems(items, sort) {
+  if (sort === 'manual') return [...items]; // preserve state array order
   const r = [...items];
   const pinFirst = (a,b) => (b.pinned?1:0)-(a.pinned?1:0);
   if (sort==='updated') r.sort((a,b)=>pinFirst(a,b)||new Date(b.updatedAt)-new Date(a.updatedAt));
@@ -1934,6 +2097,75 @@ function sortItems(items, sort) {
 function setSort(type, val) {
   if (type==='note') { noteSort=val; renderNotes(); }
   else               { wishSort=val; renderWishes(); }
+}
+function initNotesSortable() {
+  const el = document.getElementById('noteList');
+  if (!el || !state.notes.length) return;
+  if (notesSortable) notesSortable.destroy();
+  notesSortable = new Sortable(el, {
+    animation: 180, ghostClass: 'sortable-ghost', dragClass: 'sortable-drag',
+    delay: 400, delayOnTouchOnly: true,
+    onEnd() {
+      const ids = [...el.querySelectorAll('.note-card')].map(c => c.dataset.id);
+      state.notes = ids.map(id => state.notes.find(n => n.id === id)).filter(Boolean);
+      saveState();
+    }
+  });
+}
+function initWishesSortable() {
+  const el = document.getElementById('wishList');
+  if (!el || !state.wishes.length) return;
+  if (wishesSortable) wishesSortable.destroy();
+  wishesSortable = new Sortable(el, {
+    animation: 180, ghostClass: 'sortable-ghost', dragClass: 'sortable-drag',
+    delay: 400, delayOnTouchOnly: true,
+    onEnd() {
+      const ids = [...el.querySelectorAll('.note-card')].map(c => c.dataset.id);
+      state.wishes = ids.map(id => state.wishes.find(w => w.id === id)).filter(Boolean);
+      saveState();
+    }
+  });
+}
+function toggleBulkMode() {
+  bulkMode = true;
+  selectedIds.clear();
+  document.getElementById('bulkBar')?.classList.add('open');
+  document.getElementById('selectBtn')?.classList.add('active');
+  renderTasks();
+}
+function exitBulkMode() {
+  bulkMode = false;
+  selectedIds.clear();
+  document.getElementById('bulkBar')?.classList.remove('open');
+  document.getElementById('selectBtn')?.classList.remove('active');
+  document.getElementById('bulkCount').textContent = '0 selected';
+  renderTasks();
+}
+function toggleBulkSelect(id) {
+  if (selectedIds.has(id)) selectedIds.delete(id);
+  else selectedIds.add(id);
+  document.getElementById('bulkCount').textContent = `${selectedIds.size} selected`;
+  const card = document.querySelector(`.task-card[data-id="${id}"]`);
+  if (card) {
+    card.classList.toggle('bulk-sel', selectedIds.has(id));
+    const box = card.querySelector('.select-box');
+    if (box) { box.classList.toggle('sel', selectedIds.has(id)); box.textContent = selectedIds.has(id) ? '✓' : ''; }
+  }
+}
+function bulkArchive() {
+  if (!selectedIds.size) return;
+  selectedIds.forEach(id => {
+    const t = state.tasks.find(x => x.id === id);
+    if (t) t.done = true;
+  });
+  saveState(); exitBulkMode();
+}
+function bulkDelete() {
+  if (!selectedIds.size) return;
+  showSheet('Delete Tasks', `Delete ${selectedIds.size} task${selectedIds.size > 1 ? 's' : ''} permanently?`, () => {
+    state.tasks = state.tasks.filter(t => !selectedIds.has(t.id));
+    saveState(); exitBulkMode();
+  });
 }
 function toggleCompact(type) {
   if (type==='note') {
@@ -2005,6 +2237,33 @@ function renderColorPicker(rowId, currentColor, onClickFn) {
     return `<button class="color-swatch nc-${c.key}${isSel?' sel':''}" style="${style}" title="${c.label}" onclick="${onClickFn}('${c.key}')"></button>`;
   }).join('');
 }
+function setEditTaskColor(colorKey) {
+  editTaskColor = colorKey === 'default' ? null : colorKey;
+  renderColorPicker('editTaskColorRow', editTaskColor, 'setEditTaskColor');
+}
+
+// ── Subtasks ──────────────────────────────────────────────────────────────────
+function renderEditSubtasks() {
+  const el = document.getElementById('editSubtaskList'); if (!el) return;
+  el.innerHTML = editSubtasks.map((s, i) => `
+    <div class="subtask-row">
+      <button class="subtask-check${s.done?' done':''}" onclick="toggleEditSubtask(${i})">${s.done?'✓':''}</button>
+      <span class="subtask-text${s.done?' done':''}">${esc(s.text)}</span>
+      <button class="subtask-del" onclick="removeEditSubtask(${i})">×</button>
+    </div>`).join('');
+}
+function addEditSubtask() {
+  const inp = document.getElementById('subtaskInp');
+  const text = inp?.value.trim(); if (!text) return;
+  editSubtasks.push({ id: uid(), text, done: false });
+  inp.value = ''; renderEditSubtasks(); inp.focus();
+}
+function toggleEditSubtask(idx) {
+  if (editSubtasks[idx]) editSubtasks[idx].done = !editSubtasks[idx].done;
+  renderEditSubtasks();
+}
+function removeEditSubtask(idx) { editSubtasks.splice(idx, 1); renderEditSubtasks(); }
+
 function setNoteColor(colorKey) {
   if (!curNote) return;
   curNote.color = colorKey==='default' ? null : colorKey;
@@ -2154,6 +2413,7 @@ function applyAdvFilter() {
 function openNewTask() {
   editingTaskId = null; editTaskLabels = []; editTaskPriority = 'none';
   editRepeatDays = []; editRepeatMonthDays = [];
+  editTaskColor = null; editSubtasks = [];
   document.getElementById('editText').value = '';
   document.getElementById('editReminder').value = '';
   const repSel = document.getElementById('editRepeat');
@@ -2163,7 +2423,8 @@ function openNewTask() {
   if (everyEl) everyEl.value = 1;
   if (unitEl)  unitEl.value = 'day';
   renderEditLabels(); setEditPriority('none');
-  renderWeekdayPicker(); renderMonthdayPicker();
+  renderColorPicker('editTaskColorRow', null, 'setEditTaskColor');
+  renderEditSubtasks(); renderWeekdayPicker(); renderMonthdayPicker();
   document.getElementById('editSheetHeading').textContent = 'New Task';
   document.getElementById('editDeleteBtn').style.display = 'none';
   document.getElementById('editSheetOverlay').classList.add('open');
@@ -2173,6 +2434,7 @@ function editTask(id) {
   const t=state.tasks.find(x=>x.id===id); if(!t) return;
   editingTaskId=id; editTaskLabels=[...(t.labels||[])]; editTaskPriority=t.priority||'none';
   editRepeatDays=[...(t.repeatDays||[])]; editRepeatMonthDays=[...(t.repeatMonthDays||[])];
+  editTaskColor=t.color||null; editSubtasks=[...(t.subtasks||[]).map(s=>({...s}))];
   document.getElementById('editText').value=t.text;
   document.getElementById('editReminder').value=t.reminder||'';
   const repSel = document.getElementById('editRepeat');
@@ -2182,7 +2444,8 @@ function editTask(id) {
   if (everyEl) everyEl.value = t.repeatEvery && t.repeatEvery>0 ? t.repeatEvery : 1;
   if (unitEl)  unitEl.value = t.repeatUnit || (t.repeat==='weekly'?'week':t.repeat==='monthly'?'month':t.repeat==='yearly'?'year':'day');
   renderEditLabels(); setEditPriority(editTaskPriority);
-  renderWeekdayPicker(); renderMonthdayPicker();
+  renderColorPicker('editTaskColorRow', editTaskColor, 'setEditTaskColor');
+  renderEditSubtasks(); renderWeekdayPicker(); renderMonthdayPicker();
   document.getElementById('editSheetHeading').textContent = 'Edit Task';
   document.getElementById('editDeleteBtn').style.display = '';
   document.getElementById('editSheetOverlay').classList.add('open');
@@ -2217,11 +2480,13 @@ function saveEditTask() {
     // New task
     if (!text) return;
     state.tasks.unshift({ id:uid(), text, labels:[...editTaskLabels], priority:editTaskPriority,
-      reminder, repeat, repeatEvery, repeatUnit, repeatDays, repeatMonthDays,
-      reminded:false, done:false, pinned:false, createdAt:new Date().toISOString() });
+      color:editTaskColor, subtasks:[...editSubtasks], reminder, repeat, repeatEvery, repeatUnit,
+      repeatDays, repeatMonthDays, reminded:false, done:false, pinned:false, streak:0,
+      createdAt:new Date().toISOString() });
   } else {
     const t = state.tasks.find(x=>x.id===editingTaskId); if (!t) return;
     t.text = text || t.text;
+    t.color = editTaskColor; t.subtasks = [...editSubtasks];
     t.reminder = reminder; t.repeat = repeat; t.repeatEvery = repeatEvery; t.repeatUnit = repeatUnit;
     t.repeatDays = repeatDays; t.repeatMonthDays = repeatMonthDays;
     t.reminded = reminder && new Date(reminder) > Date.now() ? false : t.reminded;
@@ -2346,7 +2611,7 @@ function renderWishes() {
   el.innerHTML=sorted.map(w=>{
     const chips=(w.labels||[]).map(l=>{const[bg,fg]=labelColor(l);return`<span class="note-chip" style="background:${bg};color:${fg}">${esc(l)}</span>`;}).join('');
     const colorCls = w.color ? ` nc-${w.color}` : '';
-    if (wishCompact) return `<div class="note-card${w.pinned?' pinned-card':''}${colorCls}" onclick="openWishEditor('${w.id}')">
+    if (wishCompact) return `<div class="note-card${w.pinned?' pinned-card':''}${colorCls}" data-id="${w.id}" onclick="openWishEditor('${w.id}')">
       <div class="note-card-head">
         <div class="note-card-title">${w.title?esc(w.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
@@ -2355,7 +2620,7 @@ function renderWishes() {
         </div>
       </div>${chips?`<div class="note-chips">${chips}</div>`:''}
     </div>`;
-    return `<div class="note-card${w.pinned?' pinned-card':''}${colorCls}" onclick="openWishEditor('${w.id}')">
+    return `<div class="note-card${w.pinned?' pinned-card':''}${colorCls}" data-id="${w.id}" onclick="openWishEditor('${w.id}')">
       <div class="note-card-head">
         <div class="note-card-title">${w.title?esc(w.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
@@ -2370,6 +2635,8 @@ function renderWishes() {
       </div>
     </div>`;
   }).join('');
+  if (wishSort === 'manual') initWishesSortable();
+  else if (wishesSortable) { wishesSortable.destroy(); wishesSortable = null; }
 }
 
 // ── Notes ─────────────────────────────────────────────────────────────────────
@@ -2380,7 +2647,7 @@ function renderNotes() {
   el.innerHTML=sorted.map(n=>{
     const chips=(n.labels||[]).map(l=>{const[bg,fg]=labelColor(l);return`<span class="note-chip" style="background:${bg};color:${fg}">${esc(l)}</span>`;}).join('');
     const colorCls = n.color ? ` nc-${n.color}` : '';
-    if (noteCompact) return `<div class="note-card${n.pinned?' pinned-card':''}${colorCls}" onclick="openNote('${n.id}')">
+    if (noteCompact) return `<div class="note-card${n.pinned?' pinned-card':''}${colorCls}" data-id="${n.id}" onclick="openNote('${n.id}')">
       <div class="note-card-head">
         <div class="note-card-title">${n.title?esc(n.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
@@ -2389,7 +2656,7 @@ function renderNotes() {
         </div>
       </div>${chips?`<div class="note-chips">${chips}</div>`:''}
     </div>`;
-    return `<div class="note-card${n.pinned?' pinned-card':''}${colorCls}" onclick="openNote('${n.id}')">
+    return `<div class="note-card${n.pinned?' pinned-card':''}${colorCls}" data-id="${n.id}" onclick="openNote('${n.id}')">
       <div class="note-card-head">
         <div class="note-card-title">${n.title?esc(n.title):'<em style="color:var(--text3);font-style:normal">Untitled</em>'}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
@@ -2401,6 +2668,8 @@ function renderNotes() {
       ${_cardPreview(n.id, n.content)}
     </div>`;
   }).join('');
+  if (noteSort === 'manual') initNotesSortable();
+  else if (notesSortable) { notesSortable.destroy(); notesSortable = null; }
 }
 
 function deleteNoteCard(id) {
